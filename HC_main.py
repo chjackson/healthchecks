@@ -3,20 +3,22 @@
 
 HEALTH CHECKS MODEL
 
-# changes against v 7.09:
+Definitive version stored on github from 30 Aug 2016 onwards
 
+Chris's changes against Arno's v 7.11 for initial github upload
+* Add CalculateLY, SimulateAndResults
+* Make nprocs an argument to main class 
+* Make randpars an argument
+* Note v.712 edits with instant death rate not included
 
--  model parameters are loaded from dictionary within parameter file to avoid mutatbility of original parameters
-during call of ChangeUncertainParameters(), and copied in globally using copy.deepcopy to break pointer link
+Any further changes will be documented via github  
 
-- ChangeUncertainParameters() now first runs ResetUncertainParameters() to avoid accumulation of parameter changes in multiple consecutive uncertainty runs
+@author:
+Arno Steinacher as2441@cam.ac.uk
+Chris Jackson chj20@mrc-bsu.cam.ac.uk
 
-- SaveParameters() also checks for boolean (introduced bool values for up_HC_include_x_register settings to allow for people on registers taking part in HC)
-
- 
-@author: arno
-Arno Steinacher
-as2441@cam.ac.uk
+@maintainer
+Chris Jackson chj20@mrc-bsu.cam.ac.uk
 
 """
 
@@ -38,7 +40,7 @@ np.seterr(all='ignore')
 
 class HealthChecksModel:
 
-    def __init__(self, parent=None, population_size=1000, simulation_time=1, HealthChecks = False, randseed=0):
+    def __init__(self, parent=None, population_size=1000, simulation_time=1, HealthChecks = False, randseed=0, randpars=False, nprocs=10):
 
         # all output printed during simulation
         self.verbose = False
@@ -66,7 +68,10 @@ class HealthChecksModel:
         self.LoadPopulationParameters()
         # load model parameters
         #self.parms = copy.deepcopy(parms)
-        self.ResetUncertainParameters()
+        if randpars:
+            self.ChangeUncertainParameters()
+        else:
+            self.ResetUncertainParameters()
         # load time series from ELSA data
         self.LoadELSA_bp()
         self.LoadELSA_bmi()
@@ -95,7 +100,7 @@ class HealthChecksModel:
         # initiate multiprocessing queue
         self.out_q = multiprocessing.Queue()
         # number of parallel processes
-        self.nprocs = 10
+        self.nprocs = nprocs
         
       
        ###################################################
@@ -5693,3 +5698,13 @@ class HealthChecksModel:
         for a in attributes:
             exec('del %s.%s' % ('self',a))
             
+
+    def CalculateLY(self):
+        self.LY = self.age[self.Death]
+
+
+    def Run(self):
+        self.Simulate()
+        self.CalculateQALY_CVD()
+        self.CalculateQALY()
+        self.CalculateLY()
