@@ -4085,12 +4085,12 @@ class HealthChecksModel:
             LC_female_ns_inc = self.LT_lungcancer[age,18] 
             
             # as a 'strict' rule, everyone that has ever smoked is considered a smoker
-            nsmoker = self.q_smoke_cat.max(axis=1) <= 1
-            smoker = self.q_smoke_cat.max(axis=1) > 0
+            #nsmoker = self.q_smoke_cat.max(axis=1) <= 1
+            #smoker = self.q_smoke_cat.max(axis=1) > 0
             # this would be a more relaxed rule, in which the current smoking status only determines whether 
             # one is a smoker or not.
-#            nsmoker = self.q_smoke_cat[:,i]<=1
-#            smoker = self.q_smoke_cat[:,i]>1
+            nsmoker = self.q_smoke_cat[:,i]<=1
+            smoker = self.q_smoke_cat[:,i]>1
             
             male_s = male * smoker
             male_ns = male * nsmoker
@@ -4232,12 +4232,12 @@ class HealthChecksModel:
             LC_female_ns_mort = self.LT_lungcancer[age,19] 
             
             # as a 'strict' rule, everyone that has ever smoked is considered a smoker
-            nsmoker = self.q_smoke_cat.max(axis=1) <= 1
-            smoker = self.q_smoke_cat.max(axis=1) > 1
+            #nsmoker = self.q_smoke_cat.max(axis=1) <= 1
+            #smoker = self.q_smoke_cat.max(axis=1) > 1
             # this would be a more relaxed rule, in which the current smoking status only determines whether 
             # one is a smoker or not.
-#            nsmoker = self.q_smoke_cat[:,i]<=1
-#            smoker = self.q_smoke_cat[:,i]>1
+            nsmoker = self.q_smoke_cat[:,i]<=1
+            smoker = self.q_smoke_cat[:,i]>1
             
             male_s = male * smoker
             male_ns = male * nsmoker
