@@ -141,53 +141,38 @@ class HealthChecksModel:
         
         ######################################################
         # load parameters that are changeable within model from parms
+
+        ## CJ TODO remove SDs from here, call directly from ChangeUncertainParameters
+                        
+        self.up_HC_offered = self.parms['HC_offered']; UP['up_HC_offered'] = self.up_HC_offered
+        self.up_HC_takeup = self.parms['HC_takeup']; UP['up_HC_takeup'] = self.up_HC_takeup
+        self.up_age_vec = self.parms['age'];         UP['up_age_vec'] = self.up_age_vec
+        self.up_gender_vec = self.parms['gender'];   UP['up_gender_vec'] = self.up_gender_vec
+        self.up_eth_vec = self.parms['ethnicity'];   UP['up_eth_vec'] = self.up_eth_vec
+        self.up_SES_vec = self.parms['SES'];         UP['up_SES_vec'] = self.up_SES_vec
         
-        
-        self.up_HC_offered = self.parms['HC_offered']
-        UP['up_HC_offered'] = self.up_HC_offered
-        self.up_HC_takeup = self.parms['HC_takeup']
-        UP['up_HC_takeup'] = self.up_HC_takeup
-        
-        self.up_age_vec = self.parms['age']
-        UP['up_age_vec'] = self.up_age_vec
-        
-        self.up_gender_vec = self.parms['gender']
-        UP['up_gender_vec'] = self.up_gender_vec
-        
-        self.up_eth_vec = self.parms['ethnicity']
-        UP['up_eth_vec'] = self.up_eth_vec
-        
-        self.up_SES_vec = self.parms['SES']
-        UP['up_SES_vec'] = self.up_SES_vec
-        
-        self.up_smoker_vec = self.parms['smoker']
-        UP['up_smoker_vec'] = self.up_smoker_vec
-        
-        self.up_QRisk_vec = self.parms['QR']
-        UP['up_QRisk_vec'] = self.up_QRisk_vec
+        self.up_smoker_vec = self.parms['smoker']; UP['up_smoker_vec'] = self.up_smoker_vec
+        self.up_QRisk_vec = self.parms['QR'];      UP['up_QRisk_vec'] = self.up_QRisk_vec
         
         age_std = (self.parms['age'] - self.parms['age95'])/2.0
         self.up_age_vec_std = age_std
-        
         gender_std = (self.parms['gender'] - self.parms['gender95'])/2.0
         self.up_gender_vec_std = gender_std
-        
         ethnicity_std = (self.parms['ethnicity'] - self.parms['ethnicity95'])/2.0
         self.up_eth_vec_std = ethnicity_std
-        
         SES_std = (self.parms['SES'] - self.parms['SES95'])/2.0
         self.up_SES_vec_std = SES_std
-        
         smoker_std = (self.parms['smoker'] - self.parms['smoker95'])/2.0
         self.up_smoker_vec_std = smoker_std
-    
         QR_std = (self.parms['QR'] - self.parms['QR95'])/2.0
         self.up_QRisk_vec_std = QR_std
-                
+                        
         HC_takeup_noneligible_std = (self.parms['HC_takeup_noneligible'] - self.parms['HC_takeup_noneligible95'])/2.0
         self.up_HC_takeup_noneligible = self.parms['HC_takeup_noneligible']
         UP['up_HC_takeup_noneligible'] = self.up_HC_takeup_noneligible
         self.up_HC_takeup_noneligible_std = HC_takeup_noneligible_std
+        self.up_HC_takeup_noneligible_betaa = self.parms['HC_takeup_noneligible_betaa']
+        self.up_HC_takeup_noneligible_betab = self.parms['HC_takeup_noneligible_betab']
         
         self.up_HC_include_diabetes_registers = self.parms['HC_include_diabetes_registers']
         UP['up_HC_include_diabetes_registers'] = self.up_HC_include_diabetes_registers
@@ -1323,9 +1308,11 @@ class HealthChecksModel:
     
 
         self.eligible = np.zeros((self.population_size, self.simulation_time),dtype=bool)
-        # people turning up to
+        # People offered HC, or attended anyway despite not being eligible
+        self.OfferedHC = np.zeros((self.population_size, self.simulation_time),dtype=bool)
+        # Probability of attendance for people offered (CJ CHANGED THIS)
         self.Turnup = np.zeros((self.population_size, self.simulation_time),dtype=bool)
-        # people attending Health Checks
+        # People attending Health Checks
         self.Attending = np.zeros((self.population_size, self.simulation_time),dtype=bool)
         self.OfferedTreatment = np.zeros((self.population_size, self.simulation_time),dtype=bool)
         
@@ -2927,10 +2914,17 @@ class HealthChecksModel:
         p_sm = np.where(self.q_smoke_cat[:,t] > 1)[0]
         p_smoking[p_sm] = self.up_smoker_vec[1]
         
-
-        self.Turnup_woSES =  self.up_HC_offered * self.up_HC_takeup * p_age * p_gender * p_eth * p_qrisk * p_smoking     
+        ## TODO
+        ## if first offer, pup should be default 
+        ## if offered before, read pup from acceptance of previous offer 
+        ## if attended in last 4 years despite not being eligible, use takeup_ever
+        
+        pup = self.up_HC_takeup
+#         pup[prev_offered] = np.where(prev_att[prev_offered], self.up_HC_takeup_ever, self.up_HC_takeup_never)
+        
+        self.Turnup_woSES =  self.up_HC_offered * pup * p_age * p_gender * p_eth * p_qrisk * p_smoking     
                     
-        self.Turnup =   self.up_HC_offered * self.up_HC_takeup * p_age * p_gender * p_eth * p_qrisk * p_ses * p_smoking
+        self.Turnup =   self.up_HC_offered * pup * p_age * p_gender * p_eth * p_qrisk * p_ses * p_smoking
 
         # delete internal arrays
         del p_age,p_gender,p_eth,p_smoking,p_nonsm,p_sm,p_ses,p_qrisk,p_s1,p_s2,p_s3,p_s4,p_s5
@@ -3040,6 +3034,8 @@ class HealthChecksModel:
 
         i = timestep
 
+        extralhr_male = np.log(self.parms['Statins_eff_extra_male'])
+        extralhr_female = np.log(self.parms['Statins_eff_extra_female'])
 
         # d = MALE ------------------------------------------------------------
         # only apply calculations for male population
@@ -3064,9 +3060,10 @@ class HealthChecksModel:
         sbp = self.q_sbp[incl, i] - 131.038314819335940
         town = self.q_town[incl] - 0.151332527399063
         surv = 0.977699398994446
+        on_statins = self.Statins[incl,i]
+
         # start sum
         self.a = np.zeros(incl.sum())
-
 
 
         # populate the smoker risk of the current population, based on Iethrisk
@@ -3130,7 +3127,8 @@ class HealthChecksModel:
         self.a += age_2 * self.q_fh_cvd[incl] * -0.0056729073729663406
         self.a += age_2 * sbp * -0.000053658425730729933
         self.a += age_2 * town * -0.0010763305052605857
-
+        self.a += on_statins * extralhr_male
+        
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
 
 
@@ -3157,6 +3155,7 @@ class HealthChecksModel:
         sbp = self.q_sbp[incl, i] - 125.773628234863280
         town = self.q_town[incl] - 0.032508373260498
         surv = 0.988948762416840
+        on_statins = self.Statins[incl,i]
         # start sum
         self.a = np.zeros(incl.sum())
 
@@ -3219,6 +3218,7 @@ class HealthChecksModel:
         self.a += age_2 * self.q_fh_cvd[incl] * -0.27567084814151099
         self.a += age_2 * sbp * 0.0073790750039744186
         self.a += age_2 * town * -0.04874654626796409
+        self.a += on_statins * extralhr_female
 
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
         
@@ -3735,7 +3735,6 @@ class HealthChecksModel:
             
             if self.Health_Checks == True:
                 
-                                
                 # evaluate uptake at current time point
                 self.Uptake(i)
                 rnd.seed(self.randseed)
@@ -3777,6 +3776,10 @@ class HealthChecksModel:
                 self.eligible[self.eligible_other_idx,i] = 1
                 # determine how many are attending it based on the switching
                 # probabilities
+
+                ## determine who is either offered HC this year, or took up anyway despite being non-eligible
+                r = np.random.random(self.population_size)
+                self.OfferedHC[:,i] = self.eligible[:,i] * (r < self.up_HC_offered)
     
                 r = np.random.random(self.population_size)
                 # for those who have already attended a health check within last 4 years, set propensity for attending again to 5% of original value
