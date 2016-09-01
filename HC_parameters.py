@@ -186,8 +186,8 @@ P['Statins_eff_HDL_female'] = 0.036
 P['Statins_eff_HDL_female_std'] = 0.012
 
 # Effects of statins in excess of cholesterol lowering (hazard ratio)
-P['Statins_eff_extra_male'] =  1 # 0.9136772 
-P['Statins_eff_extra_female'] = 1 # 0.9398666 
+P['Statins_eff_extra_male'] =  1
+P['Statins_eff_extra_female'] = 1
 
 # Antihypertensive effectiveness
 
