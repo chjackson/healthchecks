@@ -40,10 +40,10 @@ np.seterr(all='ignore')
 
 class HealthChecksModel:
 
-    def __init__(self, parent=None, population_size=1000, simulation_time=1, HealthChecks = False, randseed=0, randpars=False, nprocs=10):
+    def __init__(self, parent=None, population_size=1000, simulation_time=1, HealthChecks = False, randseed=0, randpars=False, nprocs=10, verbose=False):
 
         # all output printed during simulation
-        self.verbose = False
+        self.verbose = verbose
         t0 = time.time()
         if self.verbose==True:
             print('initialising...')
@@ -2966,9 +2966,9 @@ class HealthChecksModel:
 
         i = timestep
 
-        extralhr_male = - np.log(self.up_Statins_eff_extra_male)
-        extralhr_female = - np.log(self.up_Statins_eff_extra_female)
-
+        extralhr_male = np.log(self.up_Statins_eff_extra_male)
+        extralhr_female = np.log(self.up_Statins_eff_extra_female)
+        
         # d = MALE ------------------------------------------------------------
         # only apply calculations for male population
         incl = self.gender == 1
@@ -2992,7 +2992,7 @@ class HealthChecksModel:
         sbp = self.q_sbp[incl, i] - 131.038314819335940
         town = self.q_town[incl] - 0.151332527399063
         surv = 0.977699398994446
-
+        
         # start sum
         self.a = np.zeros(incl.sum())
 
@@ -3058,7 +3058,7 @@ class HealthChecksModel:
         self.a += age_2 * self.q_fh_cvd[incl] * -0.0056729073729663406
         self.a += age_2 * sbp * -0.000053658425730729933
         self.a += age_2 * town * -0.0010763305052605857
-        self.a += self.on_statins[incl,i] * rati * extralhr_male
+        self.a += self.on_statins[incl,i] * extralhr_male
         
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
 
@@ -3148,7 +3148,7 @@ class HealthChecksModel:
         self.a += age_2 * self.q_fh_cvd[incl] * -0.27567084814151099
         self.a += age_2 * sbp * 0.0073790750039744186
         self.a += age_2 * town * -0.04874654626796409
-        self.a += self.on_statins[incl,i] * rati * extralhr_female
+        self.a += self.on_statins[incl,i] * extralhr_female
 
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
 

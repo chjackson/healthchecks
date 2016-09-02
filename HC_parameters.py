@@ -186,10 +186,9 @@ P['Statins_eff_HDL_male_std'] = 0.006
 P['Statins_eff_HDL_female'] = 0.036
 P['Statins_eff_HDL_female_std'] = 0.012
 
-# Extra HR for 1 unit decrease in total chol / HDL on risk only achieved from statins
-# (on top of baseline of 0.8393405, 0.8584992, i.e. they're greater)
-P['Statins_eff_extra_male'] =  1 #0.8027507
-P['Statins_eff_extra_female'] = 1 # 0.8196136
+# Extra HR for effect of statins on top of totchol/HDL reduction 
+P['Statins_eff_extra_male'] =  0.82
+P['Statins_eff_extra_female'] = 0.87
 
 # Antihypertensive effectiveness
 
