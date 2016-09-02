@@ -142,47 +142,18 @@ class HealthChecksModel:
         ######################################################
         # load parameters that are changeable within model from parms
 
-        ## CJ NEW STUFF 
-        self.up_HC_takeup_prev_att = self.parms['HC_takeup_prev_att']
-        UP['up_HC_takeup_prev_att'] = self.up_HC_takeup_prev_att
-        self.up_HC_takeup_not_prev_att = self.parms['HC_takeup_not_prev_att']
-        UP['up_HC_takeup_not_prev_att'] = self.up_HC_takeup_not_prev_att
-        self.up_Statins_eff_extra_male = self.parms['Statins_eff_extra_male']
-        UP['Statins_eff_extra_male'] = self.up_Statins_eff_extra_male
-        self.up_Statins_eff_extra_female = self.parms['Statins_eff_extra_female']
-        UP['Statins_eff_extra_female'] = self.up_Statins_eff_extra_female
-        
-        ## CJ TODO remove SDs from here, call directly from ChangeUncertainParameters
-
         self.up_HC_offered = self.parms['HC_offered']; UP['up_HC_offered'] = self.up_HC_offered
         self.up_HC_takeup = self.parms['HC_takeup']; UP['up_HC_takeup'] = self.up_HC_takeup
+
         self.up_age_vec = self.parms['age'];         UP['up_age_vec'] = self.up_age_vec
         self.up_gender_vec = self.parms['gender'];   UP['up_gender_vec'] = self.up_gender_vec
         self.up_eth_vec = self.parms['ethnicity'];   UP['up_eth_vec'] = self.up_eth_vec
         self.up_SES_vec = self.parms['SES'];         UP['up_SES_vec'] = self.up_SES_vec
-
         self.up_smoker_vec = self.parms['smoker']; UP['up_smoker_vec'] = self.up_smoker_vec
         self.up_QRisk_vec = self.parms['QR'];      UP['up_QRisk_vec'] = self.up_QRisk_vec
 
-        age_std = (self.parms['age'] - self.parms['age95'])/2.0
-        self.up_age_vec_std = age_std
-        gender_std = (self.parms['gender'] - self.parms['gender95'])/2.0
-        self.up_gender_vec_std = gender_std
-        ethnicity_std = (self.parms['ethnicity'] - self.parms['ethnicity95'])/2.0
-        self.up_eth_vec_std = ethnicity_std
-        SES_std = (self.parms['SES'] - self.parms['SES95'])/2.0
-        self.up_SES_vec_std = SES_std
-        smoker_std = (self.parms['smoker'] - self.parms['smoker95'])/2.0
-        self.up_smoker_vec_std = smoker_std
-        QR_std = (self.parms['QR'] - self.parms['QR95'])/2.0
-        self.up_QRisk_vec_std = QR_std
-
-        HC_takeup_noneligible_std = (self.parms['HC_takeup_noneligible'] - self.parms['HC_takeup_noneligible95'])/2.0
         self.up_HC_takeup_noneligible = self.parms['HC_takeup_noneligible']
         UP['up_HC_takeup_noneligible'] = self.up_HC_takeup_noneligible
-        self.up_HC_takeup_noneligible_std = HC_takeup_noneligible_std
-        self.up_HC_takeup_noneligible_betaa = self.parms['HC_takeup_noneligible_betaa']
-        self.up_HC_takeup_noneligible_betab = self.parms['HC_takeup_noneligible_betab']
 
         self.up_HC_include_diabetes_registers = self.parms['HC_include_diabetes_registers']
         UP['up_HC_include_diabetes_registers'] = self.up_HC_include_diabetes_registers
@@ -196,110 +167,68 @@ class HealthChecksModel:
         self.up_HC_smoker_ref = self.parms['HC_smoker_referral_rate']
         UP['up_HC_smoker_ref'] = self.up_HC_smoker_ref
 
-        HC_weight_referral_std = (self.parms['HC_weight_referral_rate'] - self.parms['HC_weight_referral95']) / 2.0
         self.up_HC_weight_ref = self.parms['HC_weight_referral_rate']
         UP['up_HC_weight_ref']= self.up_HC_weight_ref
-        self.up_HC_weight_ref_std = HC_weight_referral_std
 
-        HC_Q20minus_statins_std = (self.parms['HC_Q20minus_statins'] - self.parms['HC_Q20minus_statins95']) / 2.0
         self.up_HC_statins_presc_Q20minus = self.parms['HC_Q20minus_statins']
         UP['up_HC_statins_presc_Q20minus'] = self.up_HC_statins_presc_Q20minus
-        self.up_HC_statins_presc_Q20minus_std = HC_Q20minus_statins_std
 
-        HC_Q20plus_statins_std = (self.parms['HC_Q20plus_statins'] - self.parms['HC_Q20plus_statins95']) / 2.0
         self.up_HC_statins_presc_Q20plus = self.parms['HC_Q20plus_statins']
         UP['up_HC_statins_presc_Q20plus'] = self.up_HC_statins_presc_Q20plus
-        self.up_HC_statins_presc_Q20plus_std = HC_Q20plus_statins_std
 
-        HC_Q20minus_aht_std = (self.parms['HC_Q20minus_aht'] - self.parms['HC_Q20minus_aht95']) / 2.0
         self.up_HC_aht_presc_Q20minus = self.parms['HC_Q20minus_aht']
         UP['up_HC_aht_presc_Q20minus'] = self.up_HC_aht_presc_Q20minus
-        self.up_HC_aht_presc_Q20minus_std = HC_Q20minus_aht_std
 
-        HC_Q20plus_aht_std = (self.parms['HC_Q20plus_aht'] - self.parms['HC_Q20plus_aht95']) / 2.0
         self.up_HC_aht_presc_Q20plus = self.parms['HC_Q20plus_aht']
         UP['up_HC_aht_presc_Q20plus'] = self.up_HC_aht_presc_Q20plus
-        self.up_HC_aht_presc_Q20plus_std = HC_Q20plus_aht_std
 
-        Weight_compliance_std = (self.parms['Weight_compliance'] - self.parms['Weight_compliance95'])/2.0
         self.up_Weight_comp = self.parms['Weight_compliance']
         UP['up_Weight_comp'] = self.up_Weight_comp
-        self.up_Weight_comp_std = Weight_compliance_std
 
-        Statins_compliance_std = (self.parms['Statins_compliance'] - self.parms['Statins_compliance95']) / 2.0
         self.up_Statins_comp = self.parms['Statins_compliance']
         UP['up_Statins_comp'] = self.up_Statins_comp
-        self.up_Statins_comp_std = Statins_compliance_std
 
-        AHT_compliance_std = (self.parms['AHT_compliance'] - self.parms['AHT_compliance95']) / 2.0
         self.up_AHT_comp = self.parms['AHT_compliance']
         UP['up_AHT_comp'] = self.up_AHT_comp
-        self.up_AHT_comp_std = AHT_compliance_std
 
-
-        Smoking_eff_std = (self.parms['Smoking_eff'] - self.parms['Smoking_eff95']) / 2.0
         self.up_Smoking_eff = self.parms['Smoking_eff']
         UP['up_Smoking_eff'] = self.up_Smoking_eff
-        self.up_Smoking_eff_std = Smoking_eff_std
 
-        Weight_eff_c_std = (self.parms['Weight_eff_c'] - self.parms['Weight_eff_c95']) / 2.0
         self.up_Weight_eff_c = self.parms['Weight_eff_c']
         UP['up_Weight_eff_c'] = self.up_Weight_eff_c
-        self.up_Weight_eff_c_std = Weight_eff_c_std
 
-        Weight_eff_nc_std = (self.parms['Weight_eff_nc'] - self.parms['Weight_eff_nc95']) / 2.0
         self.up_Weight_eff_nc = self.parms['Weight_eff_nc']
         UP['up_Weight_eff_nc'] = self.up_Weight_eff_nc
-        self.up_Weight_eff_nc_std = Weight_eff_nc_std
 
-        Statins_eff_male_std = (self.parms['Statins_eff_male'] - self.parms['Statins_eff_male95']) / 2.0
         self.up_Statins_eff_male = self.parms['Statins_eff_male']
         UP['up_Statins_eff_male'] = self.up_Statins_eff_male
-        self.up_Statins_eff_male_std = Statins_eff_male_std
 
-        Statins_eff_female_std = (self.parms['Statins_eff_female'] - self.parms['Statins_eff_female95']) / 2.0
         self.up_Statins_eff_female = self.parms['Statins_eff_female']
         UP['up_Statins_eff_female'] = self.up_Statins_eff_female
-        self.up_Statins_eff_female_std = Statins_eff_female_std
 
         self.up_Statins_eff_HDL_male = self.parms['Statins_eff_HDL_male']
         UP['up_Statins_eff_HDL_male'] = self.up_Statins_eff_HDL_male
-        self.up_Statins_eff_HDL_male_std = self.parms['Statins_eff_HDL_male_std']
 
         self.up_Statins_eff_HDL_female = self.parms['Statins_eff_HDL_female']
         UP['up_Statins_eff_HDL_female'] = self.up_Statins_eff_HDL_female
-        self.up_Statins_eff_HDL_female_std = self.parms['Statins_eff_HDL_female_std']
 
-        AHT_eff_age55minus_SBP_std = (self.parms['AHT_eff_age55minus_SBP'] - self.parms['AHT_eff_age55minus_SBP95']) / 2.0
         self.up_AHT_eff_age55minus_SBP = self.parms['AHT_eff_age55minus_SBP']
         UP['up_AHT_eff_age55minus_SBP'] = self.up_AHT_eff_age55minus_SBP
-        self.up_AHT_eff_age55minus_SBP_std = AHT_eff_age55minus_SBP_std
 
-        AHT_eff_age55minus_DBP_std = (self.parms['AHT_eff_age55minus_DBP'] - self.parms['AHT_eff_age55minus_DBP95']) / 2.0
         self.up_AHT_eff_age55minus_DBP = self.parms['AHT_eff_age55minus_DBP']
         UP['up_AHT_eff_age55minus_DBP'] = self.up_AHT_eff_age55minus_DBP
-        self.up_AHT_eff_age55minus_DBP_std = AHT_eff_age55minus_DBP_std
 
-        AHT_eff_age55plus_SBP_male_std = (self.parms['AHT_eff_age55plus_SBP_male'] - self.parms['AHT_eff_age55plus_SBP_male95']) / 2.0
         self.up_AHT_eff_age55plus_SBP_male = self.parms['AHT_eff_age55plus_SBP_male']
         UP['up_AHT_eff_age55plus_SBP_male'] = self.up_AHT_eff_age55plus_SBP_male
-        self.up_AHT_eff_age55plus_SBP_male_std = AHT_eff_age55plus_SBP_male_std
 
-        AHT_eff_age55plus_SBP_female_std = (self.parms['AHT_eff_age55plus_SBP_female'] - self.parms['AHT_eff_age55plus_SBP_female95']) / 2.0
         self.up_AHT_eff_age55plus_SBP_female = self.parms['AHT_eff_age55plus_SBP_female']
         UP['up_AHT_eff_age55plus_SBP_female'] = self.up_AHT_eff_age55plus_SBP_female
-        self.up_AHT_eff_age55plus_SBP_female_std = AHT_eff_age55plus_SBP_female_std
 
-        AHT_eff_age55plus_DBP_male_std = (self.parms['AHT_eff_age55plus_DBP_male'] - self.parms['AHT_eff_age55plus_DBP_male95']) / 2.0
         self.up_AHT_eff_age55plus_DBP_male = self.parms['AHT_eff_age55plus_DBP_male']
         UP['up_AHT_eff_age55plus_DBP_male'] = self.up_AHT_eff_age55plus_DBP_male
-        self.up_AHT_eff_age55plus_DBP_male_std = AHT_eff_age55plus_DBP_male_std
 
-        AHT_eff_age55plus_DBP_female_std = (self.parms['AHT_eff_age55plus_DBP_female'] - self.parms['AHT_eff_age55plus_DBP_female95']) / 2.0
         self.up_AHT_eff_age55plus_DBP_female = self.parms['AHT_eff_age55plus_DBP_female']
         UP['up_AHT_eff_age55plus_DBP_female'] = self.up_AHT_eff_age55plus_DBP_female
-        self.up_AHT_eff_age55plus_DBP_female_std = AHT_eff_age55plus_DBP_female_std
-
 
         self.up_CVD_diagnosis_fraction = self.parms['CVD_diagnosis_fraction']
         UP['up_CVD_diagnosis_fraction'] = self.up_CVD_diagnosis_fraction
@@ -322,6 +251,19 @@ class HealthChecksModel:
         self.up_physically_active = self.parms['physically_active']
         UP['up_physically_active'] = self.up_physically_active
 
+        ## CJ NEW STUFF
+        self.up_HC_takeup_prev_att = self.parms['HC_takeup_prev_att']
+        UP['up_HC_takeup_prev_att'] = self.up_HC_takeup_prev_att
+        self.up_HC_takeup_not_prev_att = self.parms['HC_takeup_not_prev_att']
+        UP['up_HC_takeup_not_prev_att'] = self.up_HC_takeup_not_prev_att
+        self.up_Statins_eff_extra_male = self.parms['Statins_eff_extra_male']
+        UP['up_Statins_eff_extra_male'] = self.up_Statins_eff_extra_male
+        self.up_Statins_eff_extra_female = self.parms['Statins_eff_extra_female']
+        UP['up_Statins_eff_extra_female'] = self.up_Statins_eff_extra_female
+        self.up_cvd_sudden_death = self.parms['CVDevent_sudden_death']
+        UP['up_cvd_sudden_death'] = self.up_cvd_sudden_death
+        self.up_cvd_background_cfr_reduction = self.parms['CVD_background_CFR_reduction']
+        UP['up_cvd_background_cfr_reduction'] = self.up_cvd_background_cfr_reduction
 
         # make list of all uncertain parameters global
         self.UP = copy.deepcopy(UP)
@@ -339,68 +281,44 @@ class HealthChecksModel:
         self.ResetUncertainParameters()
 
         for i in range(4):
-            self.up_age_vec[i] = np.random.normal(self.up_age_vec[i], self.up_age_vec_std[i])
-
+            self.up_age_vec[i] = np.exp(np.random.normal(self.parms['age_log'][i], self.parms['age_selog'][i]))
         for i in range(2):
-            self.up_gender_vec[i] = np.random.normal(self.up_gender_vec[i], self.up_gender_vec_std[i])
-
+            self.up_gender_vec[i] = np.exp(np.random.normal(self.parms['gender_log'][i], self.parms['gender_selog'][i]))
         for i in range(4):
-            self.up_eth_vec[i] = np.random.normal(self.up_eth_vec[i], self.up_eth_vec_std[i])
-
+            self.up_eth_vec[i] = np.exp(np.random.normal(self.parms['ethnicity_log'][i], self.parms['ethnicity_selog'][i]))
         for i in range(4):
-            self.up_SES_vec[i] = np.random.normal(self.up_SES_vec[i], self.up_SES_vec_std[i])
-
+            self.up_SES_vec[i] = np.exp(np.random.normal(self.parms['SES_log'][i], self.parms['SES_selog'][i]))
         for i in range(2):
-            self.up_smoker_vec[i] = np.random.normal(self.up_smoker_vec[i], self.up_smoker_vec_std[i])
-
+            self.up_smoker_vec[i] = np.exp(np.random.normal(self.parms['smoker_log'][i], self.parms['smoker_selog'][i]))
         for i in range(5):
-            self.up_QRisk_vec[i] = np.random.normal(self.up_QRisk_vec[i], self.up_QRisk_vec_std[i])
+            self.up_QRisk_vec[i] = np.exp(np.random.normal(self.parms['QR_log'][i], self.parms['QR_selog'][i]))
 
-        self.up_HC_takeup_noneligible = np.random.normal(self.up_HC_takeup_noneligible, self.up_HC_takeup_noneligible_std)
+        self.up_HC_takeup_noneligible = np.random.beta(self.parms['HC_takeup_noneligible_betaa'], self.parms['HC_takeup_noneligible_betab'])
+        self.up_HC_smoker_ref = np.random.beta(self.parms['HC_smoker_referral_betaa'], self.parms['HC_smoker_referral_betab'])
+        self.up_HC_weight_ref = np.random.beta(self.parms['HC_weight_referral_betaa'], self.parms['HC_weight_referral_betab'])
+        self.up_HC_statins_presc_Q20minus = np.random.beta(self.parms['HC_Q20minus_statins_betaa'], self.parms['HC_Q20minus_statins_betab'])
+        self.up_HC_statins_presc_Q20plus = np.random.beta(self.parms['HC_Q20plus_statins_betaa'], self.parms['HC_Q20plus_statins_betab'])
+        self.up_HC_aht_presc_Q20minus = np.random.beta(self.parms['HC_Q20minus_aht_betaa'], self.parms['HC_Q20minus_aht_betab'])
+        self.up_HC_aht_presc_Q20plus = np.random.beta(self.parms['HC_Q20plus_aht_betaa'], self.parms['HC_Q20plus_aht_betab'])
 
-        self.up_HC_weight_ref = np.random.normal(self.up_HC_weight_ref, self.up_HC_weight_ref_std)
+        self.up_Weight_comp  = np.random.beta(self.parms['Weight_compliance_betaa'], self.parms['Weight_compliance_betab']) # TODO
+        self.up_Statins_comp = np.random.beta(self.parms['Statins_compliance_betaa'], self.parms['Statins_compliance_betab'])
+        self.up_AHT_comp = np.random.beta(self.parms['AHT_compliance_betaa'], self.parms['AHT_compliance_betab'])
 
-        self.up_HC_statins_presc_Q20minus = np.random.normal(self.up_HC_statins_presc_Q20minus, self.up_HC_statins_presc_Q20minus_std)
+        self.up_Smoking_eff = np.random.beta(self.parms['Smoking_eff_betaa'], self.parms['Smoking_eff_betab'])
+        self.up_Weight_eff_c = np.random.normal(self.parms['Weight_eff'], self.parms['Weight_eff_std']) # TODO
+        self.up_Weight_eff_nc = np.random.normal(self.parms['Weight_eff_nc'], self.parms['Weight_eff_ncstd']) # not used any more?
 
-        self.up_HC_statins_presc_Q20plus = np.random.normal(self.up_HC_statins_presc_Q20plus, self.up_HC_statins_presc_Q20plus_std)
-
-        self.up_HC_aht_presc_Q20minus = np.random.normal(self.up_HC_aht_presc_Q20minus, self.up_HC_aht_presc_Q20minus_std)
-
-        self.up_HC_aht_presc_Q20plus = np.random.normal(self.up_HC_aht_presc_Q20plus, self.up_HC_aht_presc_Q20plus_std)
-
-        self.up_Weight_comp  = np.random.normal(self.up_Weight_comp, self.up_Weight_comp_std)
-
-        self.up_Statins_comp = np.random.normal(self.up_Statins_comp, self.up_Statins_comp_std)
-
-        self.up_AHT_comp = np.random.normal(self.up_AHT_comp, self.up_AHT_comp_std)
-
-        self.up_Smoking_eff = np.random.normal(self.up_Smoking_eff, self.up_Smoking_eff_std)
-
-        self.up_Weight_eff_c = np.random.normal(self.up_Weight_eff_c, self.up_Weight_eff_c_std)
-
-        self.up_Weight_eff_nc = np.random.normal(self.up_Weight_eff_nc, self.up_Weight_eff_nc_std)
-
-        self.up_Statins_eff_male = np.random.normal(self.up_Statins_eff_male, self.up_Statins_eff_male_std)
-
-        self.up_Statins_eff_female = np.random.normal(self.up_Statins_eff_female, self.up_Statins_eff_female_std)
-
-        self.up_AHT_eff_age55minus_SBP = np.random.normal(self.up_AHT_eff_age55minus_SBP , self.up_AHT_eff_age55minus_SBP_std)
-
-        self.up_AHT_eff_age55minus_DBP = np.random.normal(self.up_AHT_eff_age55minus_DBP, self.up_AHT_eff_age55minus_DBP_std)
-
-        self.up_AHT_eff_age55plus_SBP_male = np.random.normal(self.up_AHT_eff_age55plus_SBP_male, self.up_AHT_eff_age55plus_SBP_male_std)
-
-        self.up_AHT_eff_age55plus_SBP_female = np.random.normal(self.up_AHT_eff_age55plus_SBP_female, self.up_AHT_eff_age55plus_SBP_female_std)
-
-        self.up_AHT_eff_age55plus_DBP_male = np.random.normal(self.up_AHT_eff_age55plus_DBP_male, self.up_AHT_eff_age55plus_DBP_male_std)
-
-        self.up_AHT_eff_age55plus_DBP_female = np.random.normal(self.up_AHT_eff_age55plus_DBP_female, self.up_AHT_eff_age55plus_DBP_female_std)
-
-        self.up_Statins_eff_HDL_male = np.random.normal(self.up_Statins_eff_HDL_male, self.up_Statins_eff_HDL_male_std)
-
-        self.up_Statins_eff_HDL_female = np.random.normal(self.up_Statins_eff_HDL_female, self.up_Statins_eff_HDL_female_std)
-
-
+        self.up_Statins_eff_male = np.random.normal(self.parms['Statins_eff_male'], self.parms['Statins_eff_male_std'])
+        self.up_Statins_eff_female = np.random.normal(self.parms['Statins_eff_female'], self.parms['Statins_eff_female_std'])
+        self.up_AHT_eff_age55minus_SBP = np.random.normal(self.parms['AHT_eff_age55minus_SBP'], self.parms['AHT_eff_age55minus_SBP_std'])
+        self.up_AHT_eff_age55minus_DBP = np.random.normal(self.parms['AHT_eff_age55minus_DBP'], self.parms['AHT_eff_age55minus_DBP_std'])
+        self.up_AHT_eff_age55plus_SBP_male = np.random.normal(self.parms['AHT_eff_age55plus_SBP_male'], self.parms['AHT_eff_age55plus_SBP_male_std'])
+        self.up_AHT_eff_age55plus_SBP_female = np.random.normal(self.parms['AHT_eff_age55plus_SBP_female'], self.parms['AHT_eff_age55plus_SBP_female_std'])
+        self.up_AHT_eff_age55plus_DBP_male = np.random.normal(self.parms['AHT_eff_age55plus_DBP_male'], self.parms['AHT_eff_age55plus_DBP_male_std'])
+        self.up_AHT_eff_age55plus_DBP_female = np.random.normal(self.parms['AHT_eff_age55plus_DBP_female'], self.parms['AHT_eff_age55plus_DBP_female_std'])
+        self.up_Statins_eff_HDL_male = np.random.normal(self.parms['Statins_eff_HDL_male'], self.parms['Statins_eff_HDL_male_std'])
+        self.up_Statins_eff_HDL_female = np.random.normal(self.parms['Statins_eff_HDL_female'], self.parms['Statins_eff_HDL_female_std'])
 
         UP = {} # dictionary containing all uncertain parameters
 
@@ -439,6 +357,7 @@ class HealthChecksModel:
         UP['up_AHT_eff_age55plus_SBP_female'] = self.up_AHT_eff_age55plus_SBP_female
         UP['up_AHT_eff_age55plus_DBP_male'] = self.up_AHT_eff_age55plus_DBP_male
         UP['up_AHT_eff_age55plus_DBP_female'] = self.up_AHT_eff_age55plus_DBP_female
+
         # other parameters,remaining unchanged
         UP['up_CVD_diagnosis_fraction'] = self.up_CVD_diagnosis_fraction
         UP['up_bp_diagnosis_fraction'] = self.up_bp_diagnosis_fraction
@@ -447,6 +366,14 @@ class HealthChecksModel:
         UP['up_AHT_dropout_rate'] = self.up_AHT_dropout_rate
         UP['up_physically_active'] = self.up_physically_active
         UP['up_HC_age_limit'] = self.up_HC_age_limit
+
+        # CJ new
+        UP['up_HC_takeup_prev_att'] = self.up_HC_takeup_prev_att
+        UP['up_HC_takeup_not_prev_att'] = self.up_HC_takeup_not_prev_att
+        UP['up_Statins_eff_extra_male'] = self.up_Statins_eff_extra_male
+        UP['up_Statins_eff_extra_female'] = self.up_Statins_eff_extra_female
+        UP['up_cvd_sudden_death'] = self.up_cvd_sudden_death
+        UP['up_cvd_background_cfr_reduction'] = self.up_cvd_background_cfr_reduction
 
         self.UP = UP
 
@@ -3039,9 +2966,9 @@ class HealthChecksModel:
 
         i = timestep
 
-        extralhr_male = np.log(self.up_Statins_eff_extra_male)
-        extralhr_female = np.log(self.up_Statins_eff_extra_female)
-        
+        extralhr_male = - np.log(self.up_Statins_eff_extra_male)
+        extralhr_female = - np.log(self.up_Statins_eff_extra_female)
+
         # d = MALE ------------------------------------------------------------
         # only apply calculations for male population
         incl = self.gender == 1
@@ -3131,8 +3058,8 @@ class HealthChecksModel:
         self.a += age_2 * self.q_fh_cvd[incl] * -0.0056729073729663406
         self.a += age_2 * sbp * -0.000053658425730729933
         self.a += age_2 * town * -0.0010763305052605857
-        self.a += self.on_statins[incl,i] * extralhr_male
-
+        self.a += self.on_statins[incl,i] * rati * extralhr_male
+        
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
 
         # FEMALE ------------------------------------------------------------
@@ -3158,7 +3085,7 @@ class HealthChecksModel:
         sbp = self.q_sbp[incl, i] - 125.773628234863280
         town = self.q_town[incl] - 0.032508373260498
         surv = 0.988948762416840
-        
+
         # start sum
         self.a = np.zeros(incl.sum())
 
@@ -3221,7 +3148,7 @@ class HealthChecksModel:
         self.a += age_2 * self.q_fh_cvd[incl] * -0.27567084814151099
         self.a += age_2 * sbp * 0.0073790750039744186
         self.a += age_2 * town * -0.04874654626796409
-        self.a += self.on_statins[incl,i] * extralhr_female
+        self.a += self.on_statins[incl,i] * rati * extralhr_female
 
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
 
@@ -3813,7 +3740,7 @@ class HealthChecksModel:
                 pup = np.zeros((self.population_size)) + self.up_HC_takeup  # Baseline prob of attendance if offered
                 pup[prev_accepted] = self.up_HC_takeup_prev_att
                 pup[prev_declined] = self.up_HC_takeup_not_prev_att
-                                
+
                 attending = r < (self.alive[:,i] * self.eligible[:, i] * self.up_HC_offered * pup * rel_uptake)
 
                 self.Attending[attending, i] = 1
@@ -4015,14 +3942,16 @@ class HealthChecksModel:
             ihd_event = r>stroke_risk
 
             # now, fill in Stroke/IHD disease states
-
-            self.Stroke[cvd_event*stroke_event,i:] = 1
-            self.StrokeEvents[cvd_event * stroke_event * (self.alive[:,i]==1),i] = 1
-            self.IHD[cvd_event*ihd_event,i:] = 1
-            self.IHDEvents[cvd_event * ihd_event * (self.alive[:,i]==1),i] = 1
-
+             # apply events and diseases only to those still alive
+            curr_alive = self.alive[:,i] == 1            
+             
+            self.Stroke[cvd_event*stroke_event * curr_alive,i:] = 1
+            self.StrokeEvents[cvd_event * stroke_event * curr_alive,i] = 1
+            self.IHD[cvd_event*ihd_event*curr_alive,i:] = 1
+            self.IHDEvents[cvd_event * ihd_event * curr_alive,i] = 1
+              
             # enter CVD events
-            self.CVD_events[:,i] = self.StrokeEvents[:,i] + self.IHDEvents[:,i]
+            self.CVD_events[:,i] = cvd_event * curr_alive
 
             # enter CVD status
             self.CVD[self.CVD_events[:,i] == 1,i:] = 1
@@ -4180,6 +4109,7 @@ class HealthChecksModel:
 
             # convert rate to probability of death following exponential distribution
             self.stroke_mortality = 1 -np.exp(-self.stroke_mortality)
+            self.stroke_mortality *= self.up_cvd_background_cfr_reduction
 
 
             r = np.random.random(self.population_size)
@@ -4199,6 +4129,7 @@ class HealthChecksModel:
 
             self.ihd_mortality[male] = ihd_male[male]
             self.ihd_mortality[female] = ihd_female[female]
+            self.ihd_mortality *= self.up_cvd_background_cfr_reduction
 
             # convert rate to probability of death following exponential distribution
             self.ihd_mortality = 1 -np.exp(-self.ihd_mortality)
@@ -4209,6 +4140,15 @@ class HealthChecksModel:
             nodeath = self.Death.sum(axis=1) == 0
             self.Death[Idies*nodeath,i] = 1
             self.CauseOfDeath[Idies*nodeath] = 'IHD'
+
+            ######
+            # mortality by sudden death following a CVD event
+            r = np.random.random(self.population_size)
+            sudden_death_risk = self.up_cvd_sudden_death
+            CVDdeath = (r<sudden_death_risk) * (self.CVD_events[:,i] == 1)
+            nodeath = self.Death.sum(axis=1) == 0
+            self.Death[CVDdeath*nodeath,i] = 1
+            self.CauseOfDeath[CVDdeath*nodeath] = 'CVD'
 
 
 

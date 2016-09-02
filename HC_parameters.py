@@ -60,12 +60,12 @@ P['ethnicity_log'] = np.array([0.0, 0.023716527, -0.007024615, -0.112049504])
 P['SES_log'] = np.array([0.0, -0.020202707, -0.010050336, 0.005982072, 0.192271888])
 P['smoker_log'] = np.array([0.0, -0.2587707])
 P['QR_log'] = np.array([0.0, 0.3386128, 0.6312718, 0.7570605, 0.8742180])
-P['age_selog'] = np.array([0.004659516, 0.0, 0.005456880, 0.042410828])
-P['gender_selog'] = np.array([0.0, 0.004305624])
-P['ethnicity_selog'] = np.array([0.0, 0.010572142, 0.012482909, 0.013298101])
-P['SES_selog'] = np.array([0.0, 0.006305499, 0.006751014, 0.006636187, 0.006353923])
-P['smoker_selog'] = np.array([0.0, 0.005314772])
-P['QR_selog'] = np.array([0.0, 0.005851975, 0.006005792, 0.006502690, 0.006210440 ])
+P['age_selog'] = np.array([0.004659516, 0.000001, 0.005456880, 0.042410828])
+P['gender_selog'] = np.array([0.000001, 0.004305624])
+P['ethnicity_selog'] = np.array([0.000001, 0.010572142, 0.012482909, 0.013298101])
+P['SES_selog'] = np.array([0.000001, 0.006305499, 0.006751014, 0.006636187, 0.006353923])
+P['smoker_selog'] = np.array([0.000001, 0.005314772])
+P['QR_selog'] = np.array([0.000001, 0.005851975, 0.006005792, 0.006502690, 0.006210440 ])
 
 
 #############################################################
@@ -90,8 +90,8 @@ P['HC_include_bp_registers'] = False
 
 # smoker referral to smoking cessation
 P['HC_smoker_referral_rate'] = 0.068   # Raw numbers are  (2571/37808)
-P['HC_smoker_referral_rate_betaa'] = 2571.5
-P['HC_smoker_referral_rate_betab'] = 34509.5
+P['HC_smoker_referral_betaa'] = 2571.5
+P['HC_smoker_referral_betab'] = 34509.5
 
 # referral to weight management
 # for people with BMI >= 30
@@ -162,6 +162,7 @@ P['Weight_eff_c'] = -2.0
 P['Weight_eff_c95'] = -2.02
 P['Weight_eff_nc'] = -0.7
 P['Weight_eff_nc95'] = -0.72
+P['Weight_eff_ncstd'] = 0.01
 
 P['Weight_eff'] = -1.5
 P['Weight_eff_std'] = 0.007 # from Stubbs et al
@@ -178,16 +179,17 @@ P['Statins_eff_female'] = -1.16
 P['Statins_eff_female95'] = -1.23
 P['Statins_eff_female_std'] = (P['Statins_eff_female'] - P['Statins_eff_female95']) / 1.96
 
-# also include effect of Statins on HDL (percent change)
+# also include effect of Statins on HDL (from CTC 2015, email from authors)
 P['Statins_eff_HDL_male'] = 0.04
 P['Statins_eff_HDL_male_std'] = 0.006
 
 P['Statins_eff_HDL_female'] = 0.036
 P['Statins_eff_HDL_female_std'] = 0.012
 
-# Effects of statins in excess of cholesterol lowering (hazard ratio)
-P['Statins_eff_extra_male'] =  1
-P['Statins_eff_extra_female'] = 1
+# Extra HR for 1 unit decrease in total chol / HDL on risk only achieved from statins
+# (on top of baseline of 0.8393405, 0.8584992, i.e. they're greater)
+P['Statins_eff_extra_male'] =  1 #0.8027507
+P['Statins_eff_extra_female'] = 1 # 0.8196136
 
 # Antihypertensive effectiveness
 
@@ -242,6 +244,8 @@ P['physically_active'] = 0.6
 # age bounds in which CAIDE is used
 P['CAIDE_age_bounds'] = [40,60]
 
+P['CVDevent_sudden_death'] = 0
+P['CVD_background_CFR_reduction'] = 1
 
 
 
