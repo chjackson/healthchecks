@@ -2968,7 +2968,7 @@ class HealthChecksModel:
 
         extralhr_male = np.log(self.up_Statins_eff_extra_male)
         extralhr_female = np.log(self.up_Statins_eff_extra_female)
-        
+
         # d = MALE ------------------------------------------------------------
         # only apply calculations for male population
         incl = self.gender == 1
@@ -2992,7 +2992,7 @@ class HealthChecksModel:
         sbp = self.q_sbp[incl, i] - 131.038314819335940
         town = self.q_town[incl] - 0.151332527399063
         surv = 0.977699398994446
-        
+
         # start sum
         self.a = np.zeros(incl.sum())
 
@@ -3059,7 +3059,7 @@ class HealthChecksModel:
         self.a += age_2 * sbp * -0.000053658425730729933
         self.a += age_2 * town * -0.0010763305052605857
         self.a += self.on_statins[incl,i] * extralhr_male
-        
+
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
 
         # FEMALE ------------------------------------------------------------
@@ -3691,7 +3691,7 @@ class HealthChecksModel:
                 else:
                     bp_reg = np.zeros(self.population_size, dtype=bool)
 
-                # depending on above values, determine overall limiting of eligibiltiy by applying combination of bp, CVD and bp register settings
+                # depending on above values, determine overall limiting of eligibility by applying combination of bp, CVD and bp register settings
                 self.register_filter[:,i] = (db_reg + cvd_reg + bp_reg) == False
 
 
@@ -3943,13 +3943,13 @@ class HealthChecksModel:
 
             # now, fill in Stroke/IHD disease states
              # apply events and diseases only to those still alive
-            curr_alive = self.alive[:,i] == 1            
-             
+            curr_alive = self.alive[:,i] == 1
+
             self.Stroke[cvd_event*stroke_event * curr_alive,i:] = 1
             self.StrokeEvents[cvd_event * stroke_event * curr_alive,i] = 1
             self.IHD[cvd_event*ihd_event*curr_alive,i:] = 1
             self.IHDEvents[cvd_event * ihd_event * curr_alive,i] = 1
-              
+
             # enter CVD events
             self.CVD_events[:,i] = cvd_event * curr_alive
 
@@ -4106,10 +4106,10 @@ class HealthChecksModel:
 
             self.stroke_mortality[male] = stroke_male[male]
             self.stroke_mortality[female] = stroke_female[female]
+            self.stroke_mortality *= self.up_cvd_background_cfr_reduction
 
             # convert rate to probability of death following exponential distribution
             self.stroke_mortality = 1 -np.exp(-self.stroke_mortality)
-            self.stroke_mortality *= self.up_cvd_background_cfr_reduction
 
 
             r = np.random.random(self.population_size)
@@ -4148,9 +4148,9 @@ class HealthChecksModel:
             CVDdeath = (r<sudden_death_risk) * (self.CVD_events[:,i] == 1)
             nodeath = self.Death.sum(axis=1) == 0
             self.Death[CVDdeath*nodeath,i] = 1
-            self.CauseOfDeath[CVDdeath*nodeath] = 'CVD'
-
-
+            self.alive[CVDdeath*nodeath,i:] = 0
+            self.CauseOfDeath[CVDdeath*(self.StrokeEvents[:,i] == 1)] = 'Stroke'
+            self.CauseOfDeath[CVDdeath*(self.IHDEvents[:,i] == 1)] = 'IHD'
 
 
             # mortality by Dementia
