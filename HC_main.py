@@ -194,12 +194,6 @@ class HealthChecksModel:
         self.up_Smoking_eff = self.parms['Smoking_eff']
         UP['up_Smoking_eff'] = self.up_Smoking_eff
 
-        self.up_Weight_eff_c = self.parms['Weight_eff_c']
-        UP['up_Weight_eff_c'] = self.up_Weight_eff_c
-
-        self.up_Weight_eff_nc = self.parms['Weight_eff_nc']
-        UP['up_Weight_eff_nc'] = self.up_Weight_eff_nc
-
         self.up_Statins_eff_male = self.parms['Statins_eff_male']
         UP['up_Statins_eff_male'] = self.up_Statins_eff_male
 
@@ -264,6 +258,8 @@ class HealthChecksModel:
         UP['up_cvd_sudden_death'] = self.up_cvd_sudden_death
         self.up_cvd_background_cfr_reduction = self.parms['CVD_background_CFR_reduction']
         UP['up_cvd_background_cfr_reduction'] = self.up_cvd_background_cfr_reduction
+        self.up_Weight_eff = self.parms['Weight_eff']
+        UP['up_Weight_eff'] = self.up_Weight_eff
 
         # make list of all uncertain parameters global
         self.UP = copy.deepcopy(UP)
@@ -301,13 +297,12 @@ class HealthChecksModel:
         self.up_HC_aht_presc_Q20minus = np.random.beta(self.parms['HC_Q20minus_aht_betaa'], self.parms['HC_Q20minus_aht_betab'])
         self.up_HC_aht_presc_Q20plus = np.random.beta(self.parms['HC_Q20plus_aht_betaa'], self.parms['HC_Q20plus_aht_betab'])
 
-        self.up_Weight_comp  = np.random.beta(self.parms['Weight_compliance_betaa'], self.parms['Weight_compliance_betab']) # TODO
+        self.up_Weight_comp  = np.random.beta(self.parms['Weight_compliance_betaa'], self.parms['Weight_compliance_betab'])
         self.up_Statins_comp = np.random.beta(self.parms['Statins_compliance_betaa'], self.parms['Statins_compliance_betab'])
         self.up_AHT_comp = np.random.beta(self.parms['AHT_compliance_betaa'], self.parms['AHT_compliance_betab'])
 
         self.up_Smoking_eff = np.random.beta(self.parms['Smoking_eff_betaa'], self.parms['Smoking_eff_betab'])
-        self.up_Weight_eff_c = np.random.normal(self.parms['Weight_eff'], self.parms['Weight_eff_std']) # TODO
-        self.up_Weight_eff_nc = np.random.normal(self.parms['Weight_eff_nc'], self.parms['Weight_eff_ncstd']) # not used any more?
+        self.up_Weight_eff = np.random.normal(self.parms['Weight_eff'], self.parms['Weight_eff_std'])
 
         self.up_Statins_eff_male = np.random.normal(self.parms['Statins_eff_male'], self.parms['Statins_eff_male_std'])
         self.up_Statins_eff_female = np.random.normal(self.parms['Statins_eff_female'], self.parms['Statins_eff_female_std'])
@@ -344,8 +339,6 @@ class HealthChecksModel:
         UP['up_Statins_comp'] = self.up_Statins_comp
         UP['up_AHT_comp'] = self.up_AHT_comp
         UP['up_Smoking_eff'] = self.up_Smoking_eff
-        UP['up_Weight_eff_c'] = self.up_Weight_eff_c
-        UP['up_Weight_eff_nc'] = self.up_Weight_eff_nc
         UP['up_Statins_eff_male'] = self.up_Statins_eff_male
         UP['up_Statins_eff_female'] = self.up_Statins_eff_female
         UP['up_Statins_eff_HDL_male'] = self.up_Statins_eff_HDL_male
@@ -374,6 +367,7 @@ class HealthChecksModel:
         UP['up_Statins_eff_extra_female'] = self.up_Statins_eff_extra_female
         UP['up_cvd_sudden_death'] = self.up_cvd_sudden_death
         UP['up_cvd_background_cfr_reduction'] = self.up_cvd_background_cfr_reduction
+        UP['up_Weight_eff'] = self.up_Weight_eff
 
         self.UP = UP
 
@@ -1207,11 +1201,12 @@ class HealthChecksModel:
         self.glyhb = np.zeros((self.population_size, self.simulation_time)) # hba1c
         self.PA = np.zeros((self.population_size, self.simulation_time),dtype=int) # physical activity
 
-        # include 'background' arrays for chol, hdl, q_rati, q_sbp, q_dia
+        # include 'background' arrays for chol, hdl, q_rati, q_sbp, q_dia, bmi
         self.q_sbp_background = np.zeros((self.population_size, self.simulation_time)) # systolic bp
         self.dia_background = np.zeros((self.population_size, self.simulation_time)) # diastolic bp
         self.q_rati_background = np.zeros((self.population_size, self.simulation_time))
         self.chol_background = np.zeros((self.population_size, self.simulation_time))
+        self.bmi_background = np.zeros((self.population_size, self.simulation_time))
 
 
 
@@ -1236,6 +1231,9 @@ class HealthChecksModel:
         # capture who is on treatment in a year
         self.on_statins = np.zeros((self.population_size, self.simulation_time),dtype=bool)
         self.on_aht = np.zeros((self.population_size, self.simulation_time),dtype=bool)
+        self.on_wr = np.zeros((self.population_size, self.simulation_time),dtype=bool)
+        # time when individual last started weight management (used to implement weight regain after referral).  Set to -1 if never had weight management
+        self.prev_wr_time = np.zeros((self.population_size), dtype=int) - 1
 
 
         self.WeightReduction_Offered = np.zeros((self.population_size, self.simulation_time),dtype=bool)
@@ -1518,6 +1516,7 @@ class HealthChecksModel:
         self.chol_background[:,0] = self.P['cholval1'][self.ok_all][select]
         self.q_rati_background[:, 0] = self.P['q_rati'][self.ok_all][select]
         self.q_sbp_background[:, 0] = self.P['q_sbp'][self.ok_all][select]
+        self.bmi_background[:, 0] = self.P['q_bmi'][self.ok_all][select]
 
         # physical activity: assume that percentage of the population are active (determined in self.parms['physically_active'])
         # this remains stable over lifetime
@@ -1871,7 +1870,7 @@ class HealthChecksModel:
         dage = np.digitize(a,bins)
 
         # bin BMI
-        b = self.bmi[:,t]
+        b = self.bmi_background[:,t]
         bins = np.array([0,25,30,100])
         dbmi = np.digitize(b,bins)
 
@@ -2075,7 +2074,7 @@ class HealthChecksModel:
         dage = np.digitize(a,bins)
 
         # bmi category:
-        b = self.bmi[:,t]
+        b = self.bmi_background[:,t]
         bins = np.array([0,25,30,100])
         dbmi = np.digitize(b,bins)
 
@@ -2245,7 +2244,7 @@ class HealthChecksModel:
 
         # categorize BMI
         # bmi category:
-        b = self.bmi[:,t]
+        b = self.bmi_background[:,t]
         bins = np.array([0,25,30,100])
         dbmi = np.digitize(b,bins)
 
@@ -2401,7 +2400,7 @@ class HealthChecksModel:
         dage = np.digitize(a,bins)
 
         # bmi category:
-        b = self.bmi[:,t]
+        b = self.bmi_background[:,t]
         bins = np.array([0,25,30,100])
         dbmi = np.digitize(b,bins)
         # bmi categories are 0, 1, so just deduct
@@ -2605,7 +2604,7 @@ class HealthChecksModel:
         dage4 = np.digitize(a,bins)
 
         # bmi category:
-        b = self.bmi[:,t]
+        b = self.bmi_background[:,t]
         bins = np.arange(18,44,2)
         bins[0] = 0
         bins[-1] = 100
@@ -3382,19 +3381,36 @@ class HealthChecksModel:
 
             if i<(self.simulation_time-1):
                 if bmimatchyrs == 4:
-                    self.bmi[:,i+1] = self.bmi[:,i] + self.bmi_delta4_1
+                    self.bmi_background[:,i+1] = self.bmi_background[:,i] + self.bmi_delta4_1
                 else:
-                    self.bmi[:,i+1] = self.bmi[:,i] + self.bmi_delta8_1
+                    self.bmi_background[:,i+1] = self.bmi_background[:,i] + self.bmi_delta8_1
                 # cap BMI at 50 should values go over this threshold
                 # likewise at 10, should values go under this threshold
                 bmimin = 10
                 bmimax = 50
-                bmi_toolow = self.bmi[:,i+1] < bmimin
-                self.bmi[bmi_toolow,i+1] = bmimin
-                bmi_toohigh = self.bmi[:,i+1] > bmimax
-                self.bmi[bmi_toohigh,i+1] = bmimax
+                bmi_toolow = self.bmi_background[:,i+1] < bmimin
+                self.bmi_background[bmi_toolow,i+1] = bmimin
+                bmi_toohigh = self.bmi_background[:,i+1] > bmimax
+                self.bmi_background[bmi_toohigh,i+1] = bmimax
 
 
+            ##################################################################
+            # WEIGHT MANAGEMENT TREATMENT - 'shifted trajectory
+            ##################################################################
+            bmi_change = np.zeros(self.population_size)
+
+            if self.Treatment_WeightReduction == True:
+                wr = self.on_wr[:,i] == 1
+                bmi_change[wr] = self.up_Weight_eff
+                ## Maximum weight loss after one year, but this is regained over 5 years
+                wr_year = i - self.prev_wr_time
+                bmi_change[wr * (wr_year == 2)] = self.up_Weight_eff * 3/5 # ref Amy Ahern, unpublished.
+                bmi_change[wr * (wr_year == 3)] = self.up_Weight_eff * 2/5 # linearly interpolate...
+                bmi_change[wr * (wr_year == 4)] = self.up_Weight_eff * 1/5
+                bmi_change[wr * (wr_year >= 5)] = 0
+
+            # then apply changes to level for this year
+            self.bmi[:,i] = self.bmi_background[:,i]  +  bmi_change
 
 
             # bp: apply the yearly delta
@@ -3421,7 +3437,6 @@ class HealthChecksModel:
                 self.dia_background[dia_toolow,i+1] = self.dia_background[:,0].min()
                 dia_toohigh = self.dia_background[:,i+1] > self.dia_background[:,0].max()
                 self.dia_background[dia_toohigh,i+1] = self.dia_background[:,0].max()
-
 
 
 
@@ -3782,34 +3797,17 @@ class HealthChecksModel:
                 # (2) Weight Reduction
 
                 # ~40% of people with BMI>30 referred to exercise
-                # ~50% compliance
-                # reduction of BMI by 2 points
                 r = np.random.random(self.population_size)
                 pw_comp = r < self.up_Weight_comp
-                pw_ncomp = r > self.up_Weight_comp
                 r = np.random.random(self.population_size)
                 pw_ref = np.array(self.Attending[:,i] * (self.bmi[:,i]>=30) * (r < self.up_HC_weight_ref), dtype=bool)
                 self.WeightReduction_Offered[pw_ref,i] = 1
 
-                # compliant and noncompliant
+                # compliance (about 50%)
                 wred_comp = np.array(self.WeightReduction_Offered[:,i] * pw_comp , dtype=bool)
-                wred_ncomp = np.array(self.WeightReduction_Offered[:,i] * pw_ncomp , dtype=bool)
-
-                # both compliant and non-compliant individuals enter weight reduction
+                self.on_wr[wred_comp,(i+1):] = 1  # labelled as being on weight reduction for ever, though treatment effect diminishes over time
+                self.prev_wr_time[wred_comp] = i # store the last time they started weight reduction, to implement weight regain
                 self.WeightReduction[wred_comp,i] = 1
-                #self.WeightReduction[wred_ncomp,i] = 1
-
-                if i<(self.simulation_time-1):
-                    # weight reduction for compliant and noncompliant indidivduals after one year
-                    if self.Treatment_WeightReduction == True:
-                        self.bmi[wred_comp,i+1] += self.up_Weight_eff_c
-                        self.bmi[wred_ncomp,i+1] += self.up_Weight_eff_nc
-
-                        # keep bmi at treated level until next match (= rematching)
-                        self.bmi_delta4_1[wred_comp] = 0
-                        self.bmi_delta4_1[wred_ncomp] = 0
-                        self.bmi_delta8_1[wred_comp] = 0
-                        self.bmi_delta8_1[wred_ncomp] = 0
 
 
                 # (3) Smoking Cessation
@@ -3822,10 +3820,7 @@ class HealthChecksModel:
                 cess = np.array(self.Attending[:,i] * (self.q_smoke_cat[:,i]>1) * p_cess, dtype=bool)
                 self.SmokingCessation_Offered[cess,i] = 1
 
-
                 # among those on Cessation program, some quit
-
-
 
                 r = np.random.random(self.population_size)
 
@@ -4151,6 +4146,8 @@ class HealthChecksModel:
             self.alive[CVDdeath*nodeath,i:] = 0
             self.CauseOfDeath[CVDdeath*(self.StrokeEvents[:,i] == 1)] = 'Stroke'
             self.CauseOfDeath[CVDdeath*(self.IHDEvents[:,i] == 1)] = 'IHD'
+
+
 
 
             # mortality by Dementia

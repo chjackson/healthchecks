@@ -13,9 +13,6 @@ containing all parameters used by the main model:
 @author: arno
 """
 
-## TODO
-
-## Update weight management figures
 
 
 import numpy as np
@@ -130,9 +127,6 @@ P['HC_Q20plus_aht_betab'] = 4463.3501
 ##########################################################
 # (2) Compliance rates
 
-# old data
-#P['Weight_compliance'] = 0.58 # proportion completing treatment
-#P['Weight_compliance95'] = 0.331
 P['Weight_compliance'] = 0.5 # from Aveyard
 P['Weight_compliance95'] = 0.3 # big uncertainty - from belief.
 P['Weight_compliance_betaa'] = 11.25982
@@ -157,17 +151,9 @@ P['Smoking_eff95'] = 0.131
 P['Smoking_eff_betaa'] = 192.5715
 P['Smoking_eff_betab'] = 1080.4478
 
-# BMI change for completers/noncompleters
-P['Weight_eff_c'] = -2.0
-P['Weight_eff_c95'] = -2.02
-P['Weight_eff_nc'] = -0.7
-P['Weight_eff_nc95'] = -0.72
-P['Weight_eff_ncstd'] = 0.01
-
+# BMI change after weight management
 P['Weight_eff'] = -1.5
 P['Weight_eff_std'] = 0.007 # from Stubbs et al
-
-## TODO implement.  want 1.5 BMI reduction for attenders in first year, tapering to zero at five years. Shape of tapering not decided yet, but we've got some data and I'm happy to sort out the details.
 
 # Statins effectiveness
 # as measured as reduction in total cholesterol at 1 year
@@ -186,7 +172,7 @@ P['Statins_eff_HDL_male_std'] = 0.006
 P['Statins_eff_HDL_female'] = 0.036
 P['Statins_eff_HDL_female_std'] = 0.012
 
-# Extra HR for effect of statins on top of totchol/HDL reduction 
+# Extra HR for effect of statins on top of totchol/HDL reduction
 P['Statins_eff_extra_male'] =  0.82
 P['Statins_eff_extra_female'] = 0.87
 
@@ -219,6 +205,17 @@ P['AHT_eff_age55plus_DBP_male_std'] = (P['AHT_eff_age55plus_DBP_male'] - P['AHT_
 P['AHT_eff_age55plus_DBP_female'] = -3.5
 P['AHT_eff_age55plus_DBP_female95'] = -3.82
 P['AHT_eff_age55plus_DBP_female_std'] = (P['AHT_eff_age55plus_DBP_female'] - P['AHT_eff_age55plus_DBP_female95']) / 1.96
+
+
+### OLD weight parameters for testing 
+
+#P['Weight_compliance'] = 0.58 # proportion completing treatment
+#P['Weight_compliance95'] = 0.331
+#P['Weight_eff_c'] = -2.0
+#P['Weight_eff_c95'] = -2.02
+#P['Weight_eff_nc'] = -0.7
+#P['Weight_eff_nc95'] = -0.72
+#P['Weight_eff_ncstd'] = 0.01
 
 
 

@@ -18,7 +18,7 @@ import getresults as gr
 st = 70
 ps = 250000
 n_cpus = 4
-prefix = "scen"    
+prefix = "scenm"    
 
 nsc = 20 # number of scenarios
 npops = 4 # number of subpopulations
