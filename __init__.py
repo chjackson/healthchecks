@@ -1,1 +1,1 @@
-from HC_main_parallelised_v711 import HealthChecksModel
+from HC_main import HealthChecksModel
