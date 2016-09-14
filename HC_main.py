@@ -250,6 +250,10 @@ class HealthChecksModel:
         UP['up_HC_takeup_prev_att'] = self.up_HC_takeup_prev_att
         self.up_HC_takeup_not_prev_att = self.parms['HC_takeup_not_prev_att']
         UP['up_HC_takeup_not_prev_att'] = self.up_HC_takeup_not_prev_att
+        self.up_HC_offer_prev_att = self.parms['HC_offer_prev_att']
+        UP['up_HC_offer_prev_att'] = self.up_HC_offer_prev_att
+        self.up_HC_offer_not_prev_att = self.parms['HC_offer_not_prev_att']
+        UP['up_HC_offer_not_prev_att'] = self.up_HC_offer_not_prev_att
         self.up_Statins_eff_extra_male = self.parms['Statins_eff_extra_male']
         UP['up_Statins_eff_extra_male'] = self.up_Statins_eff_extra_male
         self.up_Statins_eff_extra_female = self.parms['Statins_eff_extra_female']
@@ -363,6 +367,8 @@ class HealthChecksModel:
         # CJ new
         UP['up_HC_takeup_prev_att'] = self.up_HC_takeup_prev_att
         UP['up_HC_takeup_not_prev_att'] = self.up_HC_takeup_not_prev_att
+        UP['up_HC_offer_prev_att'] = self.up_HC_offer_prev_att
+        UP['up_HC_offer_not_prev_att'] = self.up_HC_offer_not_prev_att
         UP['up_Statins_eff_extra_male'] = self.up_Statins_eff_extra_male
         UP['up_Statins_eff_extra_female'] = self.up_Statins_eff_extra_female
         UP['up_cvd_sudden_death'] = self.up_cvd_sudden_death
@@ -1243,6 +1249,7 @@ class HealthChecksModel:
 
 
         self.eligible = np.zeros((self.population_size, self.simulation_time),dtype=bool)
+        self.poff = np.zeros((self.population_size, self.simulation_time),dtype=bool)
         # People offered HC, or attended anyway despite not being eligible
         self.OfferedHC = np.zeros((self.population_size, self.simulation_time),dtype=bool)
         # time at which each individual was last offered a HC.
@@ -3743,20 +3750,34 @@ class HealthChecksModel:
                     rel_uptake[self.Attending[:,i-4:i].sum(axis=1) >= 1] *= red_turnup_factor
 
                 r = np.random.random(self.population_size)
-                offered = r < (self.alive[:,i] * self.eligible[:, i] * self.up_HC_offered)
-                self.OfferedHC[offered, i] = 1
+
                 ever_offered = self.prev_offer_time >= 0
                 ## did they attend at their last offer time?
                 prev_attended = self.Attending[range(self.population_size) , self.prev_offer_time]
-                ## update last offer time to include people offered HC this time
-                self.prev_offer_time[self.OfferedHC[:,i]] = i
                 prev_accepted = ever_offered * prev_attended
                 prev_declined = ever_offered * (1 - prev_attended)
-                pup = np.zeros((self.population_size)) + self.up_HC_takeup  # Baseline prob of attendance if offered
-                pup[prev_accepted] = self.up_HC_takeup_prev_att
-                pup[prev_declined] = self.up_HC_takeup_not_prev_att
 
-                attending = r < (self.alive[:,i] * self.eligible[:, i] * self.up_HC_offered * pup * rel_uptake)
+                poff = np.zeros((self.population_size)) + self.up_HC_offered  # Prob offered HC can depend on previous attendance
+                poff[prev_accepted==1] = self.up_HC_offer_prev_att
+                poff[prev_declined==1] = self.up_HC_offer_not_prev_att
+
+                self.poff[:,i] = poff 
+                offered = r < (self.alive[:,i] * self.eligible[:, i] * poff)
+                self.OfferedHC[offered, i] = 1
+                ## update last offer time to include people offered HC this time
+                self.prev_offer_time[self.OfferedHC[:,i] == 1] = i
+
+                pup = np.zeros((self.population_size)) + self.up_HC_takeup  # Baseline prob of attendance if offered
+                pup[prev_accepted==1] = self.up_HC_takeup_prev_att
+                pup[prev_declined==1] = self.up_HC_takeup_not_prev_att
+                pup *= rel_uptake
+                pup[pup > 1] = 1
+
+                att_prob = self.alive[:,i] * self.eligible[:, i] * poff * pup
+                attending = r < att_prob
+
+#                self.pup = pup
+#                self.att_prob = att_prob
 
                 self.Attending[attending, i] = 1
 
@@ -4106,7 +4127,10 @@ class HealthChecksModel:
             # convert rate to probability of death following exponential distribution
             self.stroke_mortality = 1 -np.exp(-self.stroke_mortality)
 
-
+#            if (self.up_cvd_sudden_death > 0): 
+#            p_stroke = cvd_risk*stroke_risk 
+#            self.stroke.mortality = (self.stroke_mortality - self.up_cvd_sudden_death * p_stroke) / (1 - p_stroke)
+            
             r = np.random.random(self.population_size)
             STdies = (r<self.stroke_mortality) * (self.Stroke[:,i]==1)
             self.alive[STdies,i:] = 0
@@ -4129,8 +4153,13 @@ class HealthChecksModel:
             # convert rate to probability of death following exponential distribution
             self.ihd_mortality = 1 -np.exp(-self.ihd_mortality)
 
+#            if (self.up_cvd_sudden_death > 0):
+#                p_ihd = cvd_risk*ihd_risk 
+#                self.ihd.mortality = (self.ihd_mortality - self.up_cvd_sudden_death * p_ihd) / (1 - p_ihd)
+
+            
             r = np.random.random(self.population_size)
-            Idies = (r<self.ihd_mortality) * (self.IHD[:,i]==1)
+            Idies = (r<self.ihd_mortality) * (self.IHD[:,i]==1) # * (self.CVD_events[:,i] != 1)
             self.alive[Idies,i:] = 0
             nodeath = self.Death.sum(axis=1) == 0
             self.Death[Idies*nodeath,i] = 1
@@ -4144,11 +4173,8 @@ class HealthChecksModel:
             nodeath = self.Death.sum(axis=1) == 0
             self.Death[CVDdeath*nodeath,i] = 1
             self.alive[CVDdeath*nodeath,i:] = 0
-            self.CauseOfDeath[CVDdeath*(self.StrokeEvents[:,i] == 1)] = 'Stroke'
-            self.CauseOfDeath[CVDdeath*(self.IHDEvents[:,i] == 1)] = 'IHD'
-
-
-
+            self.CauseOfDeath[CVDdeath*nodeath*(self.StrokeEvents[:,i] == 1)] = 'Stroke'
+            self.CauseOfDeath[CVDdeath*nodeath*(self.IHDEvents[:,i] == 1)] = 'IHD'
 
             # mortality by Dementia
 

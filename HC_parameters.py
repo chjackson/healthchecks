@@ -25,6 +25,8 @@ P['HC_offered'] = 0.197 # offered HC among eligible in 2014/15
 P['HC_takeup'] = 0.488 # of those offered, how many follow up HC
 P['HC_takeup_prev_att'] = 0.488 #  (same, for those attending at their previous invitation or those who attended despite not being eligible)
 P['HC_takeup_not_prev_att'] = 0.488 # (same, for those not attending at their previous invitation)
+P['HC_offer_prev_att'] = 0.197
+P['HC_offer_not_prev_att'] = 0.197
 P['HC_age_limit'] = [40, 74] # min / max age for HC eligibility
 
 #############################################################
@@ -207,7 +209,7 @@ P['AHT_eff_age55plus_DBP_female95'] = -3.82
 P['AHT_eff_age55plus_DBP_female_std'] = (P['AHT_eff_age55plus_DBP_female'] - P['AHT_eff_age55plus_DBP_female95']) / 1.96
 
 
-### OLD weight parameters for testing 
+### OLD weight parameters for testing
 
 #P['Weight_compliance'] = 0.58 # proportion completing treatment
 #P['Weight_compliance95'] = 0.331

@@ -3,15 +3,15 @@
 def GetResults_all(H, H1, M, S, N):
     el_tot = (H1.eligible.sum(axis=1)>0)
     hc_offered = (H1.OfferedHC.sum(axis=1)>0)
-    att_tot = H1.Attending * H1.eligible  # H1.Attending should give same answer
-    n_att_once = (att_tot.sum(axis=1)>0)
+    att = H1.Attending * H1.eligible  # H1.Attending should give same answer
+    n_att_once = (att.sum(axis=1)>0)
     t_offered = (H1.OfferedTreatment.sum(axis=1)>0)
     stat = (H1.Statins.sum(axis=1)>0)
     aht = (H1.Hypertensives.sum(axis=1)>0)
     sc = (H1.SmokingCessation.sum(axis=1)>0)
     wr = (H1.WeightReduction.sum(axis=1)>0)
-    total_hc = att_tot.sum()
-    
+    total_hc = att.sum()
+
     M[0,0] = (H.QALY).mean()
     M[1,0] = (H.QALY[el_tot]).mean()
     M[2,0] = (H.QALY[n_att_once]).mean()
@@ -80,7 +80,7 @@ def GetResults_all(H, H1, M, S, N):
     N[6] = sc.sum()
     N[7] = wr.sum()
     N[8] = total_hc
-    
+
     return M,S,N
 
 def GetResults_stat(H, H1, M, S, NT):
