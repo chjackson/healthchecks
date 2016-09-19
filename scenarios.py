@@ -18,9 +18,10 @@ import getresults as gr
 st = 70
 ps = 250000
 n_cpus = 4
-prefix = "scenm"    
+prefix = "scenoff"    
 
-nsc = 20 # number of scenarios
+# nsc = 20 # number of scenarios
+nsc = 3
 npops = 4 # number of subpopulations
 nouts = 6 # number of outputs (LY, QALY etc)
 
@@ -43,28 +44,34 @@ H.Run()
 
 r = 0
 
+H1 = hc.HealthChecksModel(population_size=ps, simulation_time=st, HealthChecks=True, nprocs=n_cpus)
+H1.Run()
+M[r,],S[r,],N[r,] = gr.GetResults_all(H, H1, M[r,], S[r,], N[r,])
+SaveResults(M, S, N, nsc, npops, nouts, prefix)
+r += 1
+
+
+
 ## With HC
 ## Include people with CVD and on diabetes registers
 ## First one here is the base case for all scenarios - don't include any people on registers. r=0
-comb = 8 # number of combinations for settings (2^3)
+comb = 4 # number of combinations for settings (2^3)
 reg_array = np.zeros((comb,3),dtype=bool)
 c = 0
 for i in [False,True]:
     for j in [False,True]:
-        for k in [False,True]:
-            reg_array[c,0] = i
-            reg_array[c,1] = j
-            reg_array[c,2] = k
-            c+=1
+        reg_array[c,0] = i
+        reg_array[c,1] = j
+        c+=1
 for i in range(comb):
     H1 = hc.HealthChecksModel(population_size=ps, simulation_time=st, HealthChecks=True, nprocs=n_cpus)
     H1.SetUncertainParameter('up_HC_include_diabetes_registers', reg_array[i,0])
-    H1.SetUncertainParameter('up_HC_include_CVD_registers', reg_array[i,1])
-    H1.SetUncertainParameter('up_HC_include_bp_registers', reg_array[i,2])
+    H1.SetUncertainParameter('up_HC_include_bp_registers', reg_array[i,1])
     H1.Run()
     M[r,],S[r,],N[r,] = gr.GetResults_all(H, H1, M[r,], S[r,], N[r,])
     SaveResults(M, S, N, nsc, npops, nouts, prefix)
     r += 1
+
 
 ## Change age threshold for eligibility
 H1 = hc.HealthChecksModel(population_size=ps, simulation_time=st, HealthChecks=True, nprocs=n_cpus)
@@ -118,7 +125,7 @@ M[r,],S[r,],N[r,] = gr.GetResults_all(H, H1, M[r,], S[r,], N[r,])
 SaveResults(M, S, N, nsc, npops, nouts, prefix)
 r += 1
 
-# Subsequent attendance more likely if attended before, less likely if not
+# Subsequent offer acceptance more likely if attended before, less likely if not
 H1 = hc.HealthChecksModel(population_size=ps, simulation_time=st, HealthChecks=True, nprocs=n_cpus)
 H1.SetUncertainParameter('up_HC_takeup_prev_att', 0.7)
 H1.SetUncertainParameter('up_HC_takeup_not_prev_att', 0.3)
@@ -127,23 +134,14 @@ M[r,],S[r,],N[r,] = gr.GetResults_all(H, H1, M[r,], S[r,], N[r,])
 SaveResults(M, S, N, nsc, npops, nouts, prefix)
 r += 1
 
-# Subsequent attendance less likely if attended before, target never-attenders
+# Double annual offer rate for previous non-attenders 
 H1 = hc.HealthChecksModel(population_size=ps, simulation_time=st, HealthChecks=True, nprocs=n_cpus)
-H1.SetUncertainParameter('up_HC_takeup_prev_att', 0.3)
-H1.SetUncertainParameter('up_HC_takeup_not_prev_att', 0.7)
+H1.SetUncertainParameter('up_HC_offer_not_prev_att', 0.4)
 H1.Run()
 M[r,],S[r,],N[r,] = gr.GetResults_all(H, H1, M[r,], S[r,], N[r,])
 SaveResults(M, S, N, nsc, npops, nouts, prefix)
 r += 1
 
-# No extra effect of statins
-H1 = hc.HealthChecksModel(population_size=ps, simulation_time=st, HealthChecks=True, nprocs=n_cpus)
-H1.SetUncertainParameter('up_Statins_eff_extra_male', 1)
-H1.SetUncertainParameter('up_Statins_eff_extra_female', 1)
-H1.Run()
-M[r,],S[r,],N[r,] = gr.GetResults_all(H, H1, M[r,], S[r,], N[r,])
-SaveResults(M, S, N, nsc, npops, nouts, prefix)
-r += 1
 
 # Sudden death from CVD events, no background mortality reduction
 HS0 = hc.HealthChecksModel(population_size=ps, simulation_time=st, HealthChecks=False, nprocs=n_cpus)
@@ -179,7 +177,6 @@ HS1.Run()
 M[r,],S[r,],N[r,] = gr.GetResults_all(HS0, HS1, M[r,], S[r,], N[r,])
 SaveResults(M, S, N, nsc, npops, nouts, prefix)
 r += 1
-
 
 assert r == nsc
 

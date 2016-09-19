@@ -258,10 +258,6 @@ class HealthChecksModel:
         UP['up_Statins_eff_extra_male'] = self.up_Statins_eff_extra_male
         self.up_Statins_eff_extra_female = self.parms['Statins_eff_extra_female']
         UP['up_Statins_eff_extra_female'] = self.up_Statins_eff_extra_female
-        self.up_cvd_sudden_death = self.parms['CVDevent_sudden_death']
-        UP['up_cvd_sudden_death'] = self.up_cvd_sudden_death
-        self.up_cvd_background_cfr_reduction = self.parms['CVD_background_CFR_reduction']
-        UP['up_cvd_background_cfr_reduction'] = self.up_cvd_background_cfr_reduction
         self.up_Weight_eff = self.parms['Weight_eff']
         UP['up_Weight_eff'] = self.up_Weight_eff
 
@@ -371,8 +367,6 @@ class HealthChecksModel:
         UP['up_HC_offer_not_prev_att'] = self.up_HC_offer_not_prev_att
         UP['up_Statins_eff_extra_male'] = self.up_Statins_eff_extra_male
         UP['up_Statins_eff_extra_female'] = self.up_Statins_eff_extra_female
-        UP['up_cvd_sudden_death'] = self.up_cvd_sudden_death
-        UP['up_cvd_background_cfr_reduction'] = self.up_cvd_background_cfr_reduction
         UP['up_Weight_eff'] = self.up_Weight_eff
 
         self.UP = UP
@@ -3686,9 +3680,8 @@ class HealthChecksModel:
             #########################################
 
             if self.Health_Checks == True:
-
-                # evaluate relative uptake at current time point
-                self.RelativeUptake(i)
+                
+                self.RelativeUptake(i) # ORs for attending given eligible at current time point
                 rnd.seed(self.randseed)
 
                 # -----------------------------------------------------------------
@@ -3729,9 +3722,8 @@ class HealthChecksModel:
                 # determine how many are attending it based on the switching
                 # probabilities
 
-                r = np.random.random(self.population_size)
                 # for those who have already attended a health check within last 4 years, set propensity for attending again to 5% of original value
-                rel_uptake = self.RelTurnup.copy()
+                rel_uptake = np.zeros(self.population_size) + 1
                 red_turnup_factor = 0.01
                 if i == 1:
                     # for year 1 in simulation, if HC was last year
@@ -3770,16 +3762,19 @@ class HealthChecksModel:
                 pup = np.zeros((self.population_size)) + self.up_HC_takeup  # Baseline prob of attendance if offered
                 pup[prev_accepted==1] = self.up_HC_takeup_prev_att
                 pup[prev_declined==1] = self.up_HC_takeup_not_prev_att
-                pup *= rel_uptake
-                pup[pup > 1] = 1
 
-                att_prob = self.alive[:,i] * self.eligible[:, i] * poff * pup
+                pup = poff * pup
+                or_uptake = self.RelTurnup.copy() # Apply ORs for attending given eligible
+                odds = pup/(1- pup) * or_uptake
+                pup = odds / (1 + odds)
+                pup *= rel_uptake
+
+                att_prob = self.alive[:,i] * self.eligible[:, i] * pup
                 attending = r < att_prob
+                self.Attending[attending, i] = 1
 
 #                self.pup = pup
 #                self.att_prob = att_prob
-
-                self.Attending[attending, i] = 1
 
 
                 #############################
@@ -4122,14 +4117,14 @@ class HealthChecksModel:
 
             self.stroke_mortality[male] = stroke_male[male]
             self.stroke_mortality[female] = stroke_female[female]
-            self.stroke_mortality *= self.up_cvd_background_cfr_reduction
 
             # convert rate to probability of death following exponential distribution
             self.stroke_mortality = 1 -np.exp(-self.stroke_mortality)
 
-#            if (self.up_cvd_sudden_death > 0): 
-#            p_stroke = cvd_risk*stroke_risk 
-#            self.stroke.mortality = (self.stroke_mortality - self.up_cvd_sudden_death * p_stroke) / (1 - p_stroke)
+            ## Reduce background mortality to compensate for sudden death risk
+            if (self.parms['CVD_background_CFR_reduction']):
+                p_fatal_stroke = cvd_risk * stroke_risk * self.parms['p_strokeevent_is_full'] * self.parms['Stroke_sudden_death']
+                self.stroke_mortality = (self.stroke_mortality - p_fatal_stroke) / (1 - p_fatal_stroke)
             
             r = np.random.random(self.population_size)
             STdies = (r<self.stroke_mortality) * (self.Stroke[:,i]==1)
@@ -4148,18 +4143,18 @@ class HealthChecksModel:
 
             self.ihd_mortality[male] = ihd_male[male]
             self.ihd_mortality[female] = ihd_female[female]
-            self.ihd_mortality *= self.up_cvd_background_cfr_reduction
 
             # convert rate to probability of death following exponential distribution
             self.ihd_mortality = 1 -np.exp(-self.ihd_mortality)
 
-#            if (self.up_cvd_sudden_death > 0):
-#                p_ihd = cvd_risk*ihd_risk 
-#                self.ihd.mortality = (self.ihd_mortality - self.up_cvd_sudden_death * p_ihd) / (1 - p_ihd)
-
+            ## Reduce background mortality to compensate for sudden death risk
+            if (self.parms['CVD_background_CFR_reduction']):
+                ihd_risk = 1 - stroke_risk
+                p_fatal_mi = cvd_risk * ihd_risk * self.parms['p_ihdevent_is_mi'] * self.parms['MI_sudden_death']
+                self.ihd_mortality = (self.ihd_mortality - p_fatal_mi) / (1 - p_fatal_mi)
             
             r = np.random.random(self.population_size)
-            Idies = (r<self.ihd_mortality) * (self.IHD[:,i]==1) # * (self.CVD_events[:,i] != 1)
+            Idies = (r<self.ihd_mortality) * (self.IHD[:,i]==1)
             self.alive[Idies,i:] = 0
             nodeath = self.Death.sum(axis=1) == 0
             self.Death[Idies*nodeath,i] = 1
@@ -4168,13 +4163,15 @@ class HealthChecksModel:
             ######
             # mortality by sudden death following a CVD event
             r = np.random.random(self.population_size)
-            sudden_death_risk = self.up_cvd_sudden_death
-            CVDdeath = (r<sudden_death_risk) * (self.CVD_events[:,i] == 1)
+            MIdeath = (r < (self.IHDEvents[:,i] == 1) * self.parms['p_ihdevent_is_mi'] * self.parms['MI_sudden_death'] )
+            strokedeath = (r < (self.StrokeEvents[:,i] == 1) * self.parms['p_strokeevent_is_full'] * self.parms['Stroke_sudden_death'] )
             nodeath = self.Death.sum(axis=1) == 0
-            self.Death[CVDdeath*nodeath,i] = 1
-            self.alive[CVDdeath*nodeath,i:] = 0
-            self.CauseOfDeath[CVDdeath*nodeath*(self.StrokeEvents[:,i] == 1)] = 'Stroke'
-            self.CauseOfDeath[CVDdeath*nodeath*(self.IHDEvents[:,i] == 1)] = 'IHD'
+            self.Death[MIdeath*nodeath,i] = 1
+            self.Death[strokedeath*nodeath,i] = 1
+            self.alive[MIdeath*nodeath,i:] = 0
+            self.alive[strokedeath*nodeath,i:] = 0
+            self.CauseOfDeath[MIdeath*nodeath] = 'Stroke'
+            self.CauseOfDeath[strokedeath*nodeath] = 'IHD'
 
             # mortality by Dementia
 

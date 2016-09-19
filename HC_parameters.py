@@ -32,39 +32,65 @@ P['HC_age_limit'] = [40, 74] # min / max age for HC eligibility
 #############################################################
 # HC uptake means
 
-P['age'] = np.array([0.66, 1, 1.41, 1.51])
-P['gender'] = np.array([1, 1.071])
-P['ethnicity'] = np.array([1, 1.024, 0.993, 0.894])
-P['SES'] = np.array([1, 0.98, 0.99, 1.006, 1.212])
-P['smoker'] = np.array([1, 0.772])
-P['QR'] = np.array([1, 1.403, 1.88, 2.132, 2.397])
+# Relative rates 
+#P['age'] = np.array([0.66, 1, 1.41, 1.51])
+#P['gender'] = np.array([1, 1.071])
+#P['ethnicity'] = np.array([1, 1.024, 0.993, 0.894])
+#P['SES'] = np.array([1, 0.98, 0.99, 1.006, 1.212])
+#P['smoker'] = np.array([1, 0.772])
+# P['QR'] = np.array([1, 1.403, 1.88, 2.132, 2.397])
+#P['QR'] = np.array([0.7129628, 1.0000000, 1.3407213, 1.5201535, 1.7086250])
+
+# Odds ratios 
+P['gender'] = np.array([1, 1.08158])
+P['age'] = np.array([0.6266264, 1, 1.508133, 1.653677])
+P['ethnicity'] = np.array([1, 1.0288336, 0.9912068,  0.8741651])
+P['SES'] = np.array([1, 0.9742240, 0.9871075, 1.0066707, 1.2491194])
+P['smoker'] = np.array([1, 0.7436315])
+P['QR'] = np.array([0.6427019, 1, 1.5406470, 1.8957039, 2.3402212])
 
 #############################################################
 # HC uptake std
 # taken from 95%CI, so std is estimated to be CI value divided by 2
 
-P['age95'] = np.array([0.654, 0.993, 1.395, 1.396])
-P['gender95'] = np.array([0.986, 1.062])
-P['ethnicity95'] = np.array([0.995, 1.003, 0.969, 0.871])
-P['SES95'] = np.array([0.991, 0.965, 0.976, 0.993, 1.192])
-P['smoker95'] = np.array([0.995, 0.764])
-P['QR95'] = np.array([0.992, 1.387, 1.858, 2.105, 2.368])
+#P['age95'] = np.array([0.654, 0.993, 1.395, 1.396])
+#P['gender95'] = np.array([0.986, 1.062])
+#P['ethnicity95'] = np.array([0.995, 1.003, 0.969, 0.871])
+#P['SES95'] = np.array([0.991, 0.965, 0.976, 0.993, 1.192])
+#P['smoker95'] = np.array([0.995, 0.764])
+# P['QR95'] = np.array([0.992, 1.387, 1.858, 2.105, 2.368])
 
 #############################################################
 # HC uptake means and SEs on the log scale
 
-P['age_log'] = np.array([-0.4155154, 0.0, 0.3435897, 0.4121097])
-P['gender_log'] = np.array([0.0, 0.06859279])
-P['ethnicity_log'] = np.array([0.0, 0.023716527, -0.007024615, -0.112049504])
-P['SES_log'] = np.array([0.0, -0.020202707, -0.010050336, 0.005982072, 0.192271888])
-P['smoker_log'] = np.array([0.0, -0.2587707])
-P['QR_log'] = np.array([0.0, 0.3386128, 0.6312718, 0.7570605, 0.8742180])
-P['age_selog'] = np.array([0.004659516, 0.000001, 0.005456880, 0.042410828])
-P['gender_selog'] = np.array([0.000001, 0.004305624])
-P['ethnicity_selog'] = np.array([0.000001, 0.010572142, 0.012482909, 0.013298101])
-P['SES_selog'] = np.array([0.000001, 0.006305499, 0.006751014, 0.006636187, 0.006353923])
-P['smoker_selog'] = np.array([0.000001, 0.005314772])
-P['QR_selog'] = np.array([0.000001, 0.005851975, 0.006005792, 0.006502690, 0.006210440 ])
+# For relative rates
+#P['age_log'] = np.array([-0.4155154, 0.0, 0.3435897, 0.4121097])
+#P['gender_log'] = np.array([0.0, 0.06859279])
+#P['ethnicity_log'] = np.array([0.0, 0.023716527, -0.007024615, -0.112049504])
+#P['SES_log'] = np.array([0.0, -0.020202707, -0.010050336, 0.005982072, 0.192271888])
+#P['smoker_log'] = np.array([0.0, -0.2587707])
+#P['QR_log'] = np.array([0.0, 0.3386128, 0.6312718, 0.7570605, 0.8742180])
+#P['age_selog'] = np.array([0.004659516, 0.000001, 0.005456880, 0.042410828])
+#P['gender_selog'] = np.array([0.000001, 0.004305624])
+#P['ethnicity_selog'] = np.array([0.000001, 0.010572142, 0.012482909, 0.013298101])
+#P['SES_selog'] = np.array([0.000001, 0.006305499, 0.006751014, 0.006636187, 0.006353923])
+#P['smoker_selog'] = np.array([0.000001, 0.005314772])
+#P['QR_selog'] = np.array([0.000001, 0.005851975, 0.006005792, 0.006502690, 0.006210440 ])
+
+# For log odds ratios 
+P['gender_log'] = np.array([0.0, 0.07842257])
+P['age_log'] = np.array([-0.4674048,  0.0,  0.4108643,  0.5025921 ])
+P['eth_log'] = np.array([ 0.0,  0.028425776, -0.008832112, -0.134486029 ])
+P['SES_log'] = np.array([ 0.0, -0.026114027, -0.012976328,  0.006648585,  0.222438803 ])
+P['smoker_log'] = np.array([ 0.0, -0.2962096  ])
+P['QR_log'] = np.array([-0.4420743,  0.0,  0.4322024,  0.6395902,  0.8502454  ])
+
+P['gender_selog'] = np.array([ 0.004716215 , 0.004629377 ])
+P['age_selog'] = np.array([ 0.005658008, 0.005819362, 0.006490005, 0.051974600 ])
+P['ethnicity_selog'] = np.array([ 0.003616423, 0.012766544, 0.014835230, 0.015422309 ])
+P['SES_selog'] = np.array([0.007420764, 0.007464298, 0.007441611, 0.007416301, 0.007145419 ])
+P['smoker_selog'] = np.array([ 0.003634693 , 0.006023610 ])
+P['QR_selog'] = np.array([ 0.007592940, 0.007950855, 0.008972403, 0.010376484, 0.010375860])
 
 
 #############################################################
@@ -88,16 +114,17 @@ P['HC_include_bp_registers'] = False
 # (1) who gets treated, expressed as proportions of whole population, not percent
 
 # smoker referral to smoking cessation
-P['HC_smoker_referral_rate'] = 0.068   # Raw numbers are  (2571/37808)
-P['HC_smoker_referral_betaa'] = 2571.5
-P['HC_smoker_referral_betab'] = 34509.5
+P['HC_smoker_referral_rate'] = 0.036
+P['HC_smoker_referral95'] = 0.033
+P['HC_smoker_referral_betaa'] = 511.73
+P['HC_smoker_referral_betab'] = 13681.49
 
 # referral to weight management
 # for people with BMI >= 30
-P['HC_weight_referral_rate'] = 0.387
-P['HC_weight_referral95'] = 0.382
-P['HC_weight_referral_betaa'] = 14073.41
-P['HC_weight_referral_betab'] = 22258.65
+P['HC_weight_referral_rate'] = 0.275
+P['HC_weight_referral95'] = 0.269
+P['HC_weight_referral_betaa'] = 5810.977
+P['HC_weight_referral_betab'] = 15280.544 
 
 # proportion of QRisk individuals receiving statins
 # for QRisk lower than 20
@@ -242,8 +269,11 @@ P['physically_active'] = 0.6
 # age bounds in which CAIDE is used
 P['CAIDE_age_bounds'] = [40,60]
 
-P['CVDevent_sudden_death'] = 0
-P['CVD_background_CFR_reduction'] = 1
+P['MI_sudden_death'] = 0.3
+P['Stroke_sudden_death'] = 0.3
+P['p_ihdevent_is_mi'] = 0.5 
+P['p_strokeevent_is_full'] = 0.6
+P['CVD_background_CFR_reduction'] = False
 
 
 
