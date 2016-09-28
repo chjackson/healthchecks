@@ -20,7 +20,6 @@ import numpy as np
 P = {} # parameter dictionary
 
 # global HC parameters
-
 P['HC_offered'] = 0.197 # offered HC among eligible in 2014/15
 P['HC_takeup'] = 0.488 # of those offered, how many follow up HC
 P['HC_takeup_prev_att'] = 0.488 #  (same, for those attending at their previous invitation or those who attended despite not being eligible)
@@ -30,18 +29,7 @@ P['HC_offer_not_prev_att'] = 0.197
 P['HC_age_limit'] = [40, 74] # min / max age for HC eligibility
 
 #############################################################
-# HC uptake means
-
-# Relative rates 
-#P['age'] = np.array([0.66, 1, 1.41, 1.51])
-#P['gender'] = np.array([1, 1.071])
-#P['ethnicity'] = np.array([1, 1.024, 0.993, 0.894])
-#P['SES'] = np.array([1, 0.98, 0.99, 1.006, 1.212])
-#P['smoker'] = np.array([1, 0.772])
-# P['QR'] = np.array([1, 1.403, 1.88, 2.132, 2.397])
-#P['QR'] = np.array([0.7129628, 1.0000000, 1.3407213, 1.5201535, 1.7086250])
-
-# Odds ratios 
+# HC uptake odds ratios 
 P['gender'] = np.array([1, 1.08158])
 P['age'] = np.array([0.6266264, 1, 1.508133, 1.653677])
 P['ethnicity'] = np.array([1, 1.0288336, 0.9912068,  0.8741651])
@@ -50,34 +38,7 @@ P['smoker'] = np.array([1, 0.7436315])
 P['QR'] = np.array([0.6427019, 1, 1.5406470, 1.8957039, 2.3402212])
 
 #############################################################
-# HC uptake std
-# taken from 95%CI, so std is estimated to be CI value divided by 2
-
-#P['age95'] = np.array([0.654, 0.993, 1.395, 1.396])
-#P['gender95'] = np.array([0.986, 1.062])
-#P['ethnicity95'] = np.array([0.995, 1.003, 0.969, 0.871])
-#P['SES95'] = np.array([0.991, 0.965, 0.976, 0.993, 1.192])
-#P['smoker95'] = np.array([0.995, 0.764])
-# P['QR95'] = np.array([0.992, 1.387, 1.858, 2.105, 2.368])
-
-#############################################################
-# HC uptake means and SEs on the log scale
-
-# For relative rates
-#P['age_log'] = np.array([-0.4155154, 0.0, 0.3435897, 0.4121097])
-#P['gender_log'] = np.array([0.0, 0.06859279])
-#P['ethnicity_log'] = np.array([0.0, 0.023716527, -0.007024615, -0.112049504])
-#P['SES_log'] = np.array([0.0, -0.020202707, -0.010050336, 0.005982072, 0.192271888])
-#P['smoker_log'] = np.array([0.0, -0.2587707])
-#P['QR_log'] = np.array([0.0, 0.3386128, 0.6312718, 0.7570605, 0.8742180])
-#P['age_selog'] = np.array([0.004659516, 0.000001, 0.005456880, 0.042410828])
-#P['gender_selog'] = np.array([0.000001, 0.004305624])
-#P['ethnicity_selog'] = np.array([0.000001, 0.010572142, 0.012482909, 0.013298101])
-#P['SES_selog'] = np.array([0.000001, 0.006305499, 0.006751014, 0.006636187, 0.006353923])
-#P['smoker_selog'] = np.array([0.000001, 0.005314772])
-#P['QR_selog'] = np.array([0.000001, 0.005851975, 0.006005792, 0.006502690, 0.006210440 ])
-
-# For log odds ratios 
+# HC uptake log odds ratios and SEs on the log scale
 P['gender_log'] = np.array([0.0, 0.07842257])
 P['age_log'] = np.array([-0.4674048,  0.0,  0.4108643,  0.5025921 ])
 P['eth_log'] = np.array([ 0.0,  0.028425776, -0.008832112, -0.134486029 ])
@@ -272,8 +233,8 @@ P['CAIDE_age_bounds'] = [40,60]
 P['MI_sudden_death'] = 0.3
 P['Stroke_sudden_death'] = 0.3
 P['p_ihdevent_is_mi'] = 0.5 
-P['p_strokeevent_is_full'] = 0.6
-P['CVD_background_CFR_reduction'] = False
+P['p_strokeevent_is_full'] = 0.5
+P['CVD_background_CFR_reduction'] = True
 
 
 
