@@ -1,0 +1,41 @@
+Health Check Microsimulation model
+
+############################################
+
+Requirements:
+
+ - Python 2.x
+
+ - Python libraries:
+
+	- numpy (scientific computing library)
+	- scipy (scientific computing library - optional)
+	- matplotlib (for plotting only, not needed for simulating the model), also referred to as pylab
+	- multiprocessing (for parallelisation)
+	- random
+
+
+###########################################
+
+MAIN MODEL
+
+The model main file is HC_main.py
+
+The main snippets of code to be needed for running the model (eg. interactively in an iPython environment):
+
+-------------
+
+import HC_main as hc
+
+simulation_time = 60 # simulation time in years
+population_size = 250000 # size of population
+n_cpus = 8 # select number of CPUs to be used for parallelisation, optimally the number of cores in computer used. If no parallelisation, choose 1 (slower).
+
+H = hc.HealthChecksModel(population_size=population_size, simulation_time=simulation_time, HealthChecks=False, nprocs=n_cpus)
+H.Run()
+
+-------------
+
+basecase.py runs the model for the base case scenario and saves the results to a set of CSV files. 
+
+scenariosub.py runs the scenarios 

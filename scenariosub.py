@@ -16,7 +16,7 @@ if (len(sys.argv) > 1):
     run = int(sys.argv[1])
 else: run = 0
 
-nsc = 12 # number of scenarios
+nsc = 16 # number of scenarios
 npops = 8 # number of subpopulations
 nouts = 6 # number of outputs (LY, QALY etc)
 
@@ -76,25 +76,6 @@ r += 1
 
 H1, HS, HA, HW, HC = initmodels()
 for h in [H1, HS, HA, HW, HC]:
-    h.SetUncertainParameter('up_HC_include_diabetes_registers', 0)
-    h.SetUncertainParameter('up_HC_include_bp_registers', 1)
-    h.Run()
-M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
-SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)
-r += 1
-
-H1, HS, HA, HW, HC = initmodels()
-for h in [H1, HS, HA, HW, HC]:
-    h.SetUncertainParameter('up_HC_include_diabetes_registers', 1)
-    h.SetUncertainParameter('up_HC_include_bp_registers', 0)
-    h.Run()
-M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
-SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)
-r += 1
-
-H1, HS, HA, HW, HC = initmodels()
-for h in [H1, HS, HA, HW, HC]:
-    h.SetUncertainParameter('up_HC_include_diabetes_registers', 1)
     h.SetUncertainParameter('up_HC_include_bp_registers', 1)
     h.Run()
 M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
@@ -104,6 +85,22 @@ r += 1
 H1, HS, HA, HW, HC = initmodels()
 for h in [H1, HS, HA, HW, HC]:
     h.SetUncertainParameter('up_HC_age_limit', [50, 74])
+    h.Run()
+M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
+SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)
+r += 1
+
+H1, HS, HA, HW, HC = initmodels()
+for h in [H1, HS, HA, HW, HC]:
+    h.SetUncertainParameter('up_HC_age_limit', [40, 80])
+    h.Run()
+M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
+SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)
+r += 1
+
+H1, HS, HA, HW, HC = initmodels()
+for h in [H1, HS, HA, HW, HC]:
+    h.SetUncertainParameter('up_HC_age_limit', [50, 80])
     h.Run()
 M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
 SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)
@@ -147,6 +144,44 @@ H1, HS, HA, HW, HC = initmodels()
 for h in [H1, HS, HA, HW, HC]:
     h.SetUncertainParameter('up_HC_statins_presc_Q20minus', 0.05) # was 2%
     h.SetUncertainParameter('up_HC_statins_presc_Q20plus', 0.36)  # was 14%
+    h.Run()
+M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
+SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)
+r += 1
+
+H1, HS, HA, HW, HC = initmodels()
+for h in [H1, HS, HA, HW, HC]:
+    h.SetUncertainParameter('up_HC_aht_presc_Q20minus', 0.05) # was 0.0154
+    h.SetUncertainParameter('up_HC_aht_presc_Q20plus', 0.1)  # was 0.0248
+    h.Run()
+M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
+SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)
+r += 1
+
+H1, HS, HA, HW, HC = initmodels()
+for h in [H1, HS, HA, HW, HC]:
+    h.SetUncertainParameter('up_HC_smoker_ref', 0.1) # was 0.036
+    h.Run()
+M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
+SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)
+r += 1
+
+H1, HS, HA, HW, HC = initmodels()
+for h in [H1, HS, HA, HW, HC]:
+    h.SetUncertainParameter('up_HC_weight_ref', 0.5) # was 0.275
+    h.Run()
+M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
+SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)
+r += 1
+
+H1, HS, HA, HW, HC = initmodels()
+for h in [H1, HS, HA, HW, HC]:
+    h.SetUncertainParameter('up_HC_statins_presc_Q20minus', 0.05) # was 2%
+    h.SetUncertainParameter('up_HC_statins_presc_Q20plus', 0.36)  # was 14%
+    h.SetUncertainParameter('up_HC_aht_presc_Q20minus', 0.05) # was 0.0154
+    h.SetUncertainParameter('up_HC_aht_presc_Q20plus', 0.1)  # was 0.0248
+    h.SetUncertainParameter('up_HC_smoker_ref', 0.1) # was 0.036
+    h.SetUncertainParameter('up_HC_weight_ref', 0.5) # was 0.275
     h.Run()
 M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
 SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)

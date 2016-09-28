@@ -8,6 +8,10 @@ st = 70
 ps = 25000
 n_cpus = 4
 prefix = "results/base/scenall"
+
+## used for running a large population in a set of batches
+## this program is called by a bash script with the batch number as a command line argument
+## results are saved to CSV files with the run/batch number in the file name
 if (len(sys.argv) > 1):
     run = int(sys.argv[1])
 else: run = 0
