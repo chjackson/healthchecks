@@ -40,7 +40,7 @@ np.seterr(all='ignore')
 
 class HealthChecksModel:
 
-    def __init__(self, parent=None, population_size=1000, simulation_time=1, HealthChecks = False, randseed=0, randpars=False, nprocs=10, verbose=False):
+    def __init__(self, parent=None, population_size=1000, simulation_time=1, HealthChecks = False, randseed=0, randpars=False, nprocs=4, verbose=False):
 
         # all output printed during simulation
         self.verbose = verbose

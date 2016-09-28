@@ -1,0 +1,346 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<html><head><title>Python: module HC_main</title>
+<meta charset="utf-8">
+</head><body bgcolor="#f0f0f8">
+
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="heading">
+<tr bgcolor="#7799ee">
+<td valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial">&nbsp;<br><big><big><strong>HC_main</strong></big></big></font></td
+><td align=right valign=bottom
+><font color="#ffffff" face="helvetica, arial"><a href=".">index</a><br><a href="file:/home/chris/hc/healthchecks/HC_main.py">/home/chris/hc/healthchecks/HC_main.py</a></font></td></tr></table>
+    <p><tt>HEALTH&nbsp;CHECKS&nbsp;MODEL<br>
+&nbsp;<br>
+Definitive&nbsp;version&nbsp;stored&nbsp;on&nbsp;github&nbsp;from&nbsp;30&nbsp;Aug&nbsp;2016&nbsp;onwards<br>
+&nbsp;<br>
+Chris's&nbsp;changes&nbsp;against&nbsp;Arno's&nbsp;v&nbsp;7.11&nbsp;for&nbsp;initial&nbsp;github&nbsp;upload<br>
+*&nbsp;Add&nbsp;CalculateLY,&nbsp;SimulateAndResults<br>
+*&nbsp;Make&nbsp;nprocs&nbsp;an&nbsp;argument&nbsp;to&nbsp;main&nbsp;class<br>
+*&nbsp;Make&nbsp;randpars&nbsp;an&nbsp;argument<br>
+*&nbsp;Note&nbsp;v.712&nbsp;edits&nbsp;with&nbsp;instant&nbsp;death&nbsp;rate&nbsp;not&nbsp;included<br>
+&nbsp;<br>
+Any&nbsp;further&nbsp;changes&nbsp;will&nbsp;be&nbsp;documented&nbsp;via&nbsp;github<br>
+&nbsp;<br>
+@author:<br>
+Arno&nbsp;Steinacher&nbsp;as2441@cam.ac.uk<br>
+Chris&nbsp;Jackson&nbsp;chj20@mrc-bsu.cam.ac.uk<br>
+&nbsp;<br>
+@maintainer<br>
+Chris&nbsp;Jackson&nbsp;chj20@mrc-bsu.cam.ac.uk</tt></p>
+<p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#aa55cc">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Modules</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#aa55cc"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><table width="100%" summary="list"><tr><td width="25%" valign=top><a href="copy.html">copy</a><br>
+<a href="HC_additional_functions.html">HC_additional_functions</a><br>
+</td><td width="25%" valign=top><a href="multiprocessing.html">multiprocessing</a><br>
+<a href="numpy.html">numpy</a><br>
+</td><td width="25%" valign=top><a href="os.html">os</a><br>
+<a href="random.html">random</a><br>
+</td><td width="25%" valign=top><a href="time.html">time</a><br>
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ee77aa">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Classes</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#ee77aa"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><dl>
+<dt><font face="helvetica, arial"><a href="HC_main.html#HealthChecksModel">HealthChecksModel</a>
+</font></dt></dl>
+ <p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#ffc8d8">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#000000" face="helvetica, arial"><a name="HealthChecksModel">class <strong>HealthChecksModel</strong></a></font></td></tr>
+    
+<tr><td bgcolor="#ffc8d8"><tt>&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%">Methods defined here:<br>
+<dl><dt><a name="HealthChecksModel-CalculateAllDiseaseMortalityRates"><strong>CalculateAllDiseaseMortalityRates</strong></a>(self)</dt><dd><tt>routine&nbsp;calculates&nbsp;probability&nbsp;of&nbsp;dying&nbsp;from&nbsp;a&nbsp;disease&nbsp;given&nbsp;an&nbsp;individual&nbsp;has&nbsp;the&nbsp;disease<br>
+from&nbsp;CFR&nbsp;/&nbsp;prevalence&nbsp;/&nbsp;mortality&nbsp;data&nbsp;in&nbsp;the&nbsp;life&nbsp;tables<br>
+This&nbsp;is&nbsp;done&nbsp;for&nbsp;all&nbsp;diseases</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateBMIStats"><strong>CalculateBMIStats</strong></a>(self, uptoyear<font color="#909090">=1</font>)</dt><dd><tt>calculate&nbsp;statistics&nbsp;for&nbsp;Blood&nbsp;pressure&nbsp;for&nbsp;intenal&nbsp;flow&nbsp;diagrams<br>
+for&nbsp;the&nbsp;first&nbsp;uptoyear&nbsp;years</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateBPStats"><strong>CalculateBPStats</strong></a>(self, uptoyear<font color="#909090">=1</font>)</dt><dd><tt>calculate&nbsp;statistics&nbsp;for&nbsp;Blood&nbsp;pressure&nbsp;for&nbsp;intenal&nbsp;flow&nbsp;diagrams<br>
+for&nbsp;the&nbsp;first&nbsp;uptoyear&nbsp;years</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateCAIDE"><strong>CalculateCAIDE</strong></a>(self, t<font color="#909090">=0</font>, output<font color="#909090">=True</font>)</dt><dd><tt>calculates&nbsp;the&nbsp;CAIDE&nbsp;Dementia&nbsp;Risk&nbsp;Score&nbsp;at&nbsp;time&nbsp;t<br>
+The&nbsp;risk&nbsp;score&nbsp;is:<br>
+&nbsp;<br>
+age:&nbsp;&nbsp;&nbsp;&nbsp;&lt;&nbsp;47&nbsp;yrs&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;47-53&nbsp;yrs&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;3<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&nbsp;53&nbsp;yrs&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;4<br>
+&nbsp;<br>
+education:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;=&nbsp;10&nbsp;yrs&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7-9&nbsp;yrs&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;2<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0-6&nbsp;yrs&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;3<br>
+&nbsp;<br>
+sex:&nbsp;&nbsp;&nbsp;&nbsp;female&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;male&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;1<br>
+&nbsp;<br>
+SBP:&nbsp;&nbsp;&nbsp;&nbsp;&lt;=&nbsp;140&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&nbsp;140&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;2<br>
+&nbsp;<br>
+BMI:&nbsp;&nbsp;&nbsp;&nbsp;&lt;=&nbsp;30&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&nbsp;30&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;2<br>
+&nbsp;<br>
+Chol:&nbsp;&nbsp;&nbsp;&lt;=&nbsp;6.5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&gt;&nbsp;6.5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;2<br>
+&nbsp;<br>
+PA:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;active&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;0<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;inactive&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;1<br>
+&nbsp;<br>
+&nbsp;<br>
+Risk:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;0-5:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.0%<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;6-7:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.9%<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;8-9:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;4.2%<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;10-11:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;7.4%<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;score&nbsp;12-15:&nbsp;&nbsp;&nbsp;&nbsp;16.4%<br>
+&nbsp;<br>
+if&nbsp;output==True,&nbsp;then&nbsp;the&nbsp;CAIDE&nbsp;score&nbsp;for&nbsp;timepoint&nbsp;t&nbsp;will&nbsp;be&nbsp;returned</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateCholStats"><strong>CalculateCholStats</strong></a>(self, uptoyear<font color="#909090">=1</font>)</dt><dd><tt>calculate&nbsp;statistics&nbsp;for&nbsp;Blood&nbsp;pressure&nbsp;for&nbsp;intenal&nbsp;flow&nbsp;diagrams<br>
+for&nbsp;the&nbsp;first&nbsp;uptoyear&nbsp;years</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateDiseaseMortalityRate"><strong>CalculateDiseaseMortalityRate</strong></a>(self, male<font color="#909090">=1</font>, disease<font color="#909090">='stroke'</font>, smoker<font color="#909090">=1</font>)</dt><dd><tt>routine&nbsp;calculates&nbsp;probability&nbsp;of&nbsp;dying&nbsp;from&nbsp;a&nbsp;disease&nbsp;given&nbsp;an&nbsp;individual&nbsp;has&nbsp;the&nbsp;disease<br>
+from&nbsp;CFR&nbsp;/&nbsp;prevalence&nbsp;/&nbsp;mortality&nbsp;data&nbsp;in&nbsp;the&nbsp;life&nbsp;tables<br>
+This&nbsp;is&nbsp;here&nbsp;done&nbsp;for&nbsp;one&nbsp;disease,&nbsp;one&nbsp;gender&nbsp;only</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateDiseasePrevalences"><strong>CalculateDiseasePrevalences</strong></a>(self)</dt><dd><tt>calculates&nbsp;disease&nbsp;prevalences&nbsp;for&nbsp;males&nbsp;and&nbsp;females</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateLY"><strong>CalculateLY</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateMeanLifeExpectancy"><strong>CalculateMeanLifeExpectancy</strong></a>(self)</dt><dd><tt>calculates&nbsp;mean&nbsp;life&nbsp;expectancy&nbsp;for&nbsp;males&nbsp;and&nbsp;females</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateQALY"><strong>CalculateQALY</strong></a>(self)</dt><dd><tt>calculates&nbsp;QALY&nbsp;for&nbsp;all&nbsp;diseases:&nbsp;stroke,&nbsp;IHD,&nbsp;Lung&nbsp;Cancer,&nbsp;Dementia</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateQALY_CVD"><strong>CalculateQALY_CVD</strong></a>(self)</dt><dd><tt>calculates&nbsp;QALY&nbsp;for&nbsp;stroke&nbsp;and&nbsp;IHD<br>
+&nbsp;<br>
+if&nbsp;people&nbsp;die&nbsp;within&nbsp;simulation,&nbsp;all&nbsp;their&nbsp;life&nbsp;years&nbsp;during&nbsp;simulation&nbsp;are&nbsp;counted<br>
+if&nbsp;people&nbsp;still&nbsp;live&nbsp;with&nbsp;age&nbsp;x&nbsp;at&nbsp;the&nbsp;end&nbsp;of&nbsp;simulation,&nbsp;their&nbsp;prospective&nbsp;age&nbsp;of&nbsp;death&nbsp;is&nbsp;estimated<br>
+using&nbsp;life&nbsp;expectancy&nbsp;at&nbsp;age&nbsp;x&nbsp;from&nbsp;ONS&nbsp;life&nbsp;tables,&nbsp;assuming&nbsp;their&nbsp;disease&nbsp;state&nbsp;at&nbsp;age&nbsp;x&nbsp;remains&nbsp;unchanged&nbsp;for&nbsp;the&nbsp;rest&nbsp;of&nbsp;their&nbsp;life</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateQrisk"><strong>CalculateQrisk</strong></a>(self, timestep)</dt><dd><tt>calculates&nbsp;the&nbsp;Qrisk&nbsp;for&nbsp;individuals,&nbsp;based&nbsp;on&nbsp;the&nbsp;QRisk&nbsp;algorithms&nbsp;written&nbsp;in&nbsp;C<br>
+Q_80_model_4_0.c&nbsp;(females)<br>
+Q_80_model_4_1.c&nbsp;(males)<br>
+published&nbsp;on<br>
+<a href="http://svn.clinrisk.co.uk/opensource/qrisk2/">http://svn.clinrisk.co.uk/opensource/qrisk2/</a><br>
+accessed&nbsp;last&nbsp;time&nbsp;15/Aug/2014<br>
+&nbsp;<br>
+function&nbsp;which&nbsp;should&nbsp;give&nbsp;a&nbsp;speedup&nbsp;to&nbsp;the&nbsp;<a href="#HealthChecksModel-CalculateQrisk">CalculateQrisk</a>()&nbsp;function&nbsp;by&nbsp;eliminating&nbsp;for&nbsp;loops.</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateSmokers"><strong>CalculateSmokers</strong></a>(self)</dt><dd><tt>evaluate&nbsp;who&nbsp;smoked&nbsp;and&nbsp;who&nbsp;quitted</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateSmokers_baseline"><strong>CalculateSmokers_baseline</strong></a>(self, uptoyear<font color="#909090">=1</font>)</dt><dd><tt>evaluate&nbsp;who&nbsp;smoked&nbsp;and&nbsp;who&nbsp;quitted&nbsp;in&nbsp;first&nbsp;&nbsp;years&nbsp;of&nbsp;simulation<br>
+up&nbsp;to&nbsp;year&nbsp;specified&nbsp;(and&nbsp;then&nbsp;take&nbsp;mean&nbsp;to&nbsp;get&nbsp;average&nbsp;for&nbsp;year<br>
+&nbsp;<br>
+&nbsp;<br>
+compares&nbsp;smoking&nbsp;status&nbsp;in&nbsp;time&nbsp;point&nbsp;x&nbsp;with&nbsp;situation&nbsp;with&nbsp;time&nbsp;point&nbsp;y<br>
+&nbsp;&nbsp;&nbsp;&nbsp;assuming&nbsp;that&nbsp;x&lt;=y<br>
+&nbsp;&nbsp;&nbsp;&nbsp;we&nbsp;want&nbsp;to&nbsp;know:<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;at&nbsp;time&nbsp;point&nbsp;x:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-(a)&nbsp;does&nbsp;someone&nbsp;quit?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;from&nbsp;comparing&nbsp;time&nbsp;point&nbsp;y&nbsp;back&nbsp;to&nbsp;x:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-(b)&nbsp;is&nbsp;someone&nbsp;still&nbsp;smoking&nbsp;at&nbsp;y&nbsp;when&nbsp;s/he&nbsp;was&nbsp;smoking&nbsp;at&nbsp;x?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-(c)&nbsp;is&nbsp;someone&nbsp;still&nbsp;non-smoker&nbsp;at&nbsp;y&nbsp;when&nbsp;s/he&nbsp;was&nbsp;nonsmoking&nbsp;at&nbsp;x?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-(d)&nbsp;is&nbsp;someone&nbsp;still&nbsp;ex-smoker&nbsp;at&nbsp;y&nbsp;when&nbsp;s/he&nbsp;was&nbsp;exsmoking&nbsp;at&nbsp;x?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-(e)&nbsp;did&nbsp;someone&nbsp;quit&nbsp;between&nbsp;x&nbsp;and&nbsp;y?<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;-(f)&nbsp;did&nbsp;someone&nbsp;relapse&nbsp;between&nbsp;x&nbsp;and&nbsp;y?<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;quitting&nbsp;means&nbsp;negative&nbsp;number&nbsp;(change&nbsp;to&nbsp;exsmoking),&nbsp;so&nbsp;-1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;relapsing&nbsp;means&nbsp;positive&nbsp;number&nbsp;(change&nbsp;to&nbsp;smoking),&nbsp;so&nbsp;+1<br>
+&nbsp;&nbsp;&nbsp;&nbsp;if&nbsp;still&nbsp;smoking/non-smoking/ex-smoker&nbsp;(no&nbsp;change),&nbsp;we&nbsp;have&nbsp;0<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;Thus,&nbsp;with&nbsp;information&nbsp;from&nbsp;smoking&nbsp;status&nbsp;'self.<strong>q_smoke_cat</strong>'&nbsp;at&nbsp;time&nbsp;point&nbsp;x,<br>
+&nbsp;&nbsp;&nbsp;&nbsp;this&nbsp;gives&nbsp;information&nbsp;on&nbsp;what&nbsp;changed&nbsp;to&nbsp;time&nbsp;point&nbsp;y<br>
+&nbsp;<br>
+&nbsp;&nbsp;&nbsp;&nbsp;returns&nbsp;index&nbsp;in&nbsp;a&nbsp;x/y&nbsp;matrix&nbsp;of&nbsp;size&nbsp;(simulation_size,simulation_size)</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-CalculateSmokers_baseline_old"><strong>CalculateSmokers_baseline_old</strong></a>(self, uptoyear<font color="#909090">=1</font>)</dt><dd><tt>evaluate&nbsp;who&nbsp;smoked&nbsp;and&nbsp;who&nbsp;quitted&nbsp;in&nbsp;first&nbsp;&nbsp;years&nbsp;of&nbsp;simulation<br>
+up&nbsp;to&nbsp;year&nbsp;specified&nbsp;(and&nbsp;then&nbsp;take&nbsp;mean&nbsp;to&nbsp;get&nbsp;average&nbsp;for&nbsp;year</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-ChangeUncertainParameters"><strong>ChangeUncertainParameters</strong></a>(self)</dt><dd><tt>draw&nbsp;uncertain&nbsp;parameters&nbsp;from&nbsp;normal&nbsp;distributions&nbsp;around&nbsp;their&nbsp;specified&nbsp;mean&nbsp;and&nbsp;std</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-EstablishAgeWeights"><strong>EstablishAgeWeights</strong></a>(self)</dt><dd><tt>evaluates&nbsp;what&nbsp;proportion&nbsp;of&nbsp;males&nbsp;in&nbsp;the&nbsp;population&nbsp;are&nbsp;of&nbsp;age&nbsp;x&nbsp;at&nbsp;time&nbsp;t=0<br>
+,&nbsp;compared&nbsp;to&nbsp;whole&nbsp;simulation:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;age_weight&nbsp;=&nbsp;number&nbsp;of&nbsp;people&nbsp;aged&nbsp;x&nbsp;at&nbsp;start&nbsp;of&nbsp;population&nbsp;/&nbsp;number&nbsp;of&nbsp;people&nbsp;aged&nbsp;x&nbsp;throughout&nbsp;simulation</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-GetCVDRisks"><strong>GetCVDRisks</strong></a>(self, t)</dt><dd><tt>get&nbsp;risk&nbsp;for&nbsp;stroke&nbsp;and&nbsp;IHD&nbsp;for&nbsp;the&nbsp;population&nbsp;at&nbsp;time&nbsp;t<br>
+expressed&nbsp;as&nbsp;probability&nbsp;to&nbsp;get&nbsp;either&nbsp;within&nbsp;the&nbsp;next&nbsp;year</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-GetDementiaRisks"><strong>GetDementiaRisks</strong></a>(self, t, age_dependent_risk<font color="#909090">=False</font>)</dt><dd><tt>determining&nbsp;risk&nbsp;for&nbsp;dementia&nbsp;for&nbsp;the&nbsp;population&nbsp;at&nbsp;time&nbsp;ti<br>
+expressed&nbsp;as&nbsp;probability&nbsp;to&nbsp;get&nbsp;dementia&nbsp;within&nbsp;the&nbsp;next&nbsp;year<br>
+&nbsp;<br>
+the&nbsp;variable&nbsp;'age_dependent_risk'&nbsp;indicates&nbsp;whether&nbsp;CAIDE&nbsp;is&nbsp;age-adjusted.<br>
+&nbsp;<br>
+if&nbsp;age_dependent_risk=True:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;then&nbsp;people&nbsp;within&nbsp;the&nbsp;age&nbsp;limit&nbsp;for&nbsp;which&nbsp;CAIDE<br>
+is&nbsp;designed&nbsp;(assumed&nbsp;to&nbsp;be&nbsp;40-60)&nbsp;will&nbsp;be&nbsp;assigned&nbsp;a&nbsp;yearly&nbsp;risk&nbsp;coming&nbsp;from&nbsp;the<br>
+mean&nbsp;of&nbsp;the&nbsp;20-year&nbsp;risk,&nbsp;if&nbsp;age&nbsp;is&nbsp;below,&nbsp;then&nbsp;they&nbsp;are&nbsp;assigned&nbsp;the&nbsp;first&nbsp;relative&nbsp;risk&nbsp;element<br>
+in&nbsp;the&nbsp;20-year&nbsp;risk&nbsp;vector&nbsp;coming&nbsp;from&nbsp;CAIDE,&nbsp;and&nbsp;if&nbsp;above&nbsp;65,&nbsp;they&nbsp;are&nbsp;assigned<br>
+the&nbsp;x-th&nbsp;element&nbsp;in&nbsp;the&nbsp;20-year&nbsp;risk&nbsp;vector,&nbsp;where&nbsp;x&nbsp;is&nbsp;min(age-65,&nbsp;20)<br>
+&nbsp;<br>
+if&nbsp;age_dependent_risk=False:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;everyone&nbsp;is&nbsp;assigned&nbsp;a&nbsp;yearly&nbsp;risk&nbsp;coming&nbsp;from&nbsp;the<br>
+mean&nbsp;of&nbsp;the&nbsp;20-year&nbsp;risk</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-GetNumberOfCPUs"><strong>GetNumberOfCPUs</strong></a>(self)</dt><dd><tt>returns&nbsp;number&nbsp;of&nbsp;CPUs&nbsp;used&nbsp;for&nbsp;parallel&nbsp;tasks&nbsp;(matchin&nbsp;processes)</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-GetUncertainParameters"><strong>GetUncertainParameters</strong></a>(self)</dt><dd><tt>returns&nbsp;dictionary&nbsp;of&nbsp;all&nbsp;uncertain&nbsp;parameters&nbsp;as&nbsp;currently&nbsp;stored&nbsp;in&nbsp;the&nbsp;model</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-Info"><strong>Info</strong></a>(self, individual, timepoint<font color="#909090">=0</font>)</dt><dd><tt>collects&nbsp;all&nbsp;available&nbsp;info&nbsp;for&nbsp;an&nbsp;individual&nbsp;at&nbsp;a&nbsp;timepoint&nbsp;(default&nbsp;timepoint=0)<br>
+outputs&nbsp;this&nbsp;info&nbsp;as&nbsp;a&nbsp;dict</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-InitialiseCVDEvents"><strong>InitialiseCVDEvents</strong></a>(self)</dt><dd><tt>Based&nbsp;on&nbsp;Stroke&nbsp;and&nbsp;IHD&nbsp;prevalences&nbsp;and&nbsp;age&nbsp;weight,&nbsp;establish&nbsp;which&nbsp;proportion&nbsp;of&nbsp;the&nbsp;initial&nbsp;population&nbsp;will&nbsp;already&nbsp;have&nbsp;a&nbsp;CVD&nbsp;event&nbsp;before&nbsp;the&nbsp;simulation&nbsp;starts<br>
+assign&nbsp;these&nbsp;to&nbsp;the&nbsp;individuals&nbsp;with&nbsp;highest&nbsp;QRisk&nbsp;for&nbsp;these&nbsp;age&nbsp;groups</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-InitialisePopulation"><strong>InitialisePopulation</strong></a>(self)</dt><dd><tt>initialises&nbsp;factors&nbsp;for&nbsp;population:</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-LE_per_extra_years_smoked"><strong>LE_per_extra_years_smoked</strong></a>(self)</dt><dd><tt>for&nbsp;smokers,&nbsp;calculate&nbsp;how&nbsp;much&nbsp;life&nbsp;expectancy&nbsp;changes&nbsp;per&nbsp;extra&nbsp;years&nbsp;smoked</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-LoadELSA_bmi"><strong>LoadELSA_bmi</strong></a>(self)</dt><dd><tt>loads&nbsp;BMI&nbsp;trajectory&nbsp;data&nbsp;from&nbsp;ELSA&nbsp;into&nbsp;an&nbsp;numpy&nbsp;array</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-LoadELSA_bp"><strong>LoadELSA_bp</strong></a>(self)</dt><dd><tt>loads&nbsp;blood&nbsp;pressure&nbsp;trajectory&nbsp;data&nbsp;from&nbsp;ELSA&nbsp;into&nbsp;an&nbsp;numpy&nbsp;array</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-LoadELSA_chol"><strong>LoadELSA_chol</strong></a>(self)</dt><dd><tt>loads&nbsp;Cholesterol&nbsp;trajectory&nbsp;data&nbsp;from&nbsp;ELSA&nbsp;into&nbsp;an&nbsp;numpy&nbsp;array</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-LoadELSA_glyhb"><strong>LoadELSA_glyhb</strong></a>(self)</dt><dd><tt>loads&nbsp;Blood&nbsp;Glucose&nbsp;trajectory&nbsp;data&nbsp;from&nbsp;ELSA&nbsp;into&nbsp;an&nbsp;numpy&nbsp;array</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-LoadELSA_smoking"><strong>LoadELSA_smoking</strong></a>(self)</dt><dd><tt>loads&nbsp;Smoking&nbsp;trajectory&nbsp;data&nbsp;from&nbsp;ELSA&nbsp;into&nbsp;an&nbsp;numpy&nbsp;array</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-LoadLifeTableData"><strong>LoadLifeTableData</strong></a>(self)</dt><dd><tt>loads&nbsp;life&nbsp;table&nbsp;model&nbsp;data&nbsp;for&nbsp;incidences&nbsp;and&nbsp;mortalities</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-LoadPopulationParameters"><strong>LoadPopulationParameters</strong></a>(self)</dt><dd><tt>loads&nbsp;population&nbsp;parameters&nbsp;from&nbsp;HSE&nbsp;file</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-MatchELSA_bmi_new"><strong>MatchELSA_bmi_new</strong></a>(self, t<font color="#909090">=0</font>)</dt><dd><tt>optimized&nbsp;routine&nbsp;to&nbsp;match&nbsp;BMI&nbsp;data&nbsp;from&nbsp;ELSA&nbsp;to&nbsp;population<br>
+to&nbsp;get&nbsp;4,&nbsp;8&nbsp;and&nbsp;1&nbsp;year&nbsp;trajectories&nbsp;for&nbsp;each&nbsp;individual</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-MatchELSA_bp_new"><strong>MatchELSA_bp_new</strong></a>(self, t<font color="#909090">=0</font>)</dt><dd><tt>optimized&nbsp;routine&nbsp;to&nbsp;match&nbsp;BP&nbsp;data&nbsp;from&nbsp;ELSA&nbsp;to&nbsp;population<br>
+to&nbsp;get&nbsp;4&nbsp;year&nbsp;trajectories&nbsp;for&nbsp;each&nbsp;individual</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-MatchELSA_chol_new"><strong>MatchELSA_chol_new</strong></a>(self, t<font color="#909090">=0</font>)</dt><dd><tt>optimized&nbsp;routine&nbsp;to&nbsp;match&nbsp;Cholesterol&nbsp;data&nbsp;from&nbsp;ELSA&nbsp;to&nbsp;population<br>
+to&nbsp;get&nbsp;4&nbsp;and&nbsp;1&nbsp;year&nbsp;trajectories&nbsp;for&nbsp;each&nbsp;individual</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-MatchELSA_glyhb_new"><strong>MatchELSA_glyhb_new</strong></a>(self, t<font color="#909090">=0</font>)</dt><dd><tt>optimized&nbsp;routine&nbsp;to&nbsp;match&nbsp;GLYHB&nbsp;data&nbsp;from&nbsp;ELSA&nbsp;to&nbsp;population<br>
+to&nbsp;get&nbsp;4&nbsp;and&nbsp;1&nbsp;year&nbsp;trajectories&nbsp;for&nbsp;each&nbsp;individual</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-MatchELSA_smoking_new"><strong>MatchELSA_smoking_new</strong></a>(self, t<font color="#909090">=0</font>)</dt></dl>
+
+<dl><dt><a name="HealthChecksModel-RelativeUptake"><strong>RelativeUptake</strong></a>(self, t)</dt><dd><tt>evaluating&nbsp;update&nbsp;factors<br>
+at&nbsp;time&nbsp;point&nbsp;t<br>
+#==============================================================================<br>
+#&nbsp;Base&nbsp;number:&nbsp;8.1%&nbsp;of&nbsp;those&nbsp;eligible&nbsp;attend&nbsp;in&nbsp;a&nbsp;given&nbsp;year&nbsp;(2012/13&nbsp;number)<br>
+#&nbsp;Ratios&nbsp;to&nbsp;apply&nbsp;to&nbsp;scaling&nbsp;8.1%&nbsp;(the&nbsp;base&nbsp;number)&nbsp;up&nbsp;down:<br>
+#<br>
+#&nbsp;Ratio<br>
+#&nbsp;North&nbsp;East&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1<br>
+#&nbsp;North&nbsp;West&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.48<br>
+#&nbsp;Yorkshire&nbsp;&amp;&nbsp;Humber&nbsp;&nbsp;1.32<br>
+#&nbsp;East&nbsp;Midlands&nbsp;&nbsp;&nbsp;1.62<br>
+#&nbsp;West&nbsp;Midlands&nbsp;&nbsp;&nbsp;1.27<br>
+#&nbsp;East&nbsp;of&nbsp;England&nbsp;1.61<br>
+#&nbsp;London&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.48<br>
+#&nbsp;South&nbsp;East&nbsp;Coast&nbsp;0.80<br>
+#&nbsp;South&nbsp;Central&nbsp;&nbsp;&nbsp;1.11<br>
+#&nbsp;South&nbsp;West&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.85<br>
+#<br>
+#&nbsp;Male&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1<br>
+#&nbsp;Female&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.07<br>
+#<br>
+#&nbsp;age&nbsp;40-49&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.66<br>
+#&nbsp;age&nbsp;50-59&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1<br>
+#&nbsp;age&nbsp;60-69&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.40<br>
+#&nbsp;age&nbsp;70-74&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.50<br>
+#<br>
+#&nbsp;White&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1<br>
+#&nbsp;South&nbsp;Asian&nbsp;1.02<br>
+#&nbsp;Black&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.99<br>
+#&nbsp;Other&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.89<br>
+#<br>
+#&nbsp;Non-smoker&nbsp;&nbsp;1<br>
+#&nbsp;Smoker&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;0.77<br>
+#<br>
+#&nbsp;Non-drinker&nbsp;1<br>
+#&nbsp;Drink&nbsp;trivial/light&nbsp;0.92<br>
+#&nbsp;Drink&nbsp;moderate+&nbsp;1.01<br>
+#<br>
+#&nbsp;qrisk&nbsp;&lt;5&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1<br>
+#&nbsp;qrisk&nbsp;5-9.9&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;1.40<br>
+#&nbsp;qrisk&nbsp;10-14.9&nbsp;&nbsp;&nbsp;1.88<br>
+#&nbsp;qrisk&nbsp;15-19.9&nbsp;&nbsp;&nbsp;2.13<br>
+#&nbsp;qrisk&nbsp;20+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;2.40<br>
+#==============================================================================<br>
+&nbsp;<br>
+This&nbsp;function&nbsp;attempts&nbsp;to&nbsp;be&nbsp;a&nbsp;speedup&nbsp;to&nbsp;the&nbsp;other&nbsp;Uptake&nbsp;function&nbsp;by&nbsp;using<br>
+numpy&nbsp;methods&nbsp;to&nbsp;populate&nbsp;the&nbsp;propensity&nbsp;vectors&nbsp;instead&nbsp;of&nbsp;native&nbsp;python&nbsp;loops<br>
+CJ&nbsp;(31/08/2016)&nbsp;renamed&nbsp;Uptake&nbsp;to&nbsp;RelativeUptake,&nbsp;moved&nbsp;absolute&nbsp;uptake&nbsp;stuff&nbsp;to&nbsp;HEALTH&nbsp;CHECKS&nbsp;ASSESSMENT&nbsp;block&nbsp;in&nbsp;<a href="#HealthChecksModel-Simulate">Simulate</a>(),&nbsp;since&nbsp;uptake&nbsp;may&nbsp;depend&nbsp;on&nbsp;whether&nbsp;previous&nbsp;HC&nbsp;offer&nbsp;was&nbsp;accepted&nbsp;(Nick's&nbsp;scenario)</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-ReleaseMemory"><strong>ReleaseMemory</strong></a>(self)</dt><dd><tt>this&nbsp;deletes&nbsp;all&nbsp;numpy&nbsp;arrays&nbsp;of&nbsp;current&nbsp;class&nbsp;and&nbsp;releases&nbsp;their&nbsp;memory<br>
+don't&nbsp;do&nbsp;this&nbsp;if&nbsp;you&nbsp;want&nbsp;to&nbsp;keep&nbsp;data&nbsp;for&nbsp;this&nbsp;simulation!!</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-ResetUncertainParameters"><strong>ResetUncertainParameters</strong></a>(self)</dt><dd><tt>defining&nbsp;parameters&nbsp;that&nbsp;are&nbsp;uncertain&nbsp;and&nbsp;making&nbsp;them&nbsp;changeable&nbsp;globally<br>
+all&nbsp;numbers&nbsp;are&nbsp;given&nbsp;as&nbsp;ratios&nbsp;scaled&nbsp;to&nbsp;1&nbsp;(ie.&nbsp;0&nbsp;=&nbsp;0%,&nbsp;1&nbsp;=&nbsp;100%)</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-Run"><strong>Run</strong></a>(self)</dt></dl>
+
+<dl><dt><a name="HealthChecksModel-SaveParameters"><strong>SaveParameters</strong></a>(self)</dt><dd><tt>saves&nbsp;the&nbsp;current&nbsp;set&nbsp;of&nbsp;parameters&nbsp;and&nbsp;model&nbsp;settings&nbsp;in&nbsp;a&nbsp;separate&nbsp;csv&nbsp;file</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-SaveResults"><strong>SaveResults</strong></a>(self)</dt><dd><tt>saves&nbsp;all&nbsp;relevant&nbsp;results&nbsp;in&nbsp;pytables&nbsp;format&nbsp;with&nbsp;unique&nbsp;specifier</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-SetNumberOfCPUs"><strong>SetNumberOfCPUs</strong></a>(self, cpus)</dt><dd><tt>sets&nbsp;number&nbsp;of&nbsp;CPUs&nbsp;used&nbsp;for&nbsp;parallel&nbsp;tasks&nbsp;(matchin&nbsp;processes)</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-SetUncertainParameter"><strong>SetUncertainParameter</strong></a>(self, parname, parval)</dt><dd><tt>updates&nbsp;an&nbsp;uncertain&nbsp;parameter&nbsp;to&nbsp;a&nbsp;new&nbsp;value</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-Simulate"><strong>Simulate</strong></a>(self, bmimatchyrs<font color="#909090">=4</font>, newroutines<font color="#909090">=True</font>)</dt><dd><tt>runs&nbsp;a&nbsp;simulation&nbsp;over&nbsp;a&nbsp;few&nbsp;years<br>
+bmimatchyrs:&nbsp;is&nbsp;BMI&nbsp;matched&nbsp;every&nbsp;4&nbsp;or&nbsp;8&nbsp;years?&nbsp;(default:4)</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-SplitCAIDEInAnnualEvents"><strong>SplitCAIDEInAnnualEvents</strong></a>(self)</dt><dd><tt>break&nbsp;down&nbsp;CAIDE&nbsp;into&nbsp;probabilities&nbsp;per&nbsp;year&nbsp;from&nbsp;life&nbsp;table&nbsp;data.<br>
+Stores&nbsp;output&nbsp;in&nbsp;one&nbsp;array&nbsp;each&nbsp;for&nbsp;males&nbsp;and&nbsp;females:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(1)&nbsp;prob_year:&nbsp;relative&nbsp;risk&nbsp;to&nbsp;develop&nbsp;dementia&nbsp;over&nbsp;the&nbsp;next&nbsp;20&nbsp;consecutive&nbsp;years,&nbsp;given&nbsp;age.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rows&nbsp;correspond&nbsp;to&nbsp;age,&nbsp;columns&nbsp;to&nbsp;20&nbsp;consecutive&nbsp;years</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-SplitQRiskInAnnualEvents"><strong>SplitQRiskInAnnualEvents</strong></a>(self)</dt><dd><tt>break&nbsp;down&nbsp;QRisk&nbsp;into&nbsp;probabilities&nbsp;per&nbsp;year&nbsp;per&nbsp;event&nbsp;(Stroke/IHD)&nbsp;from&nbsp;life&nbsp;table&nbsp;data.<br>
+Stores&nbsp;output&nbsp;in&nbsp;two&nbsp;arrays&nbsp;each&nbsp;for&nbsp;males&nbsp;and&nbsp;females:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(1)&nbsp;prob_year:&nbsp;relative&nbsp;risk&nbsp;to&nbsp;develop&nbsp;an&nbsp;event&nbsp;over&nbsp;the&nbsp;next&nbsp;10&nbsp;consecutive&nbsp;years,&nbsp;given&nbsp;age.<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;rows&nbsp;correspond&nbsp;to&nbsp;age,&nbsp;columns&nbsp;to&nbsp;10&nbsp;consecutive&nbsp;years<br>
+&nbsp;&nbsp;&nbsp;&nbsp;(2)&nbsp;prob_event:&nbsp;relative&nbsp;risk&nbsp;that&nbsp;an&nbsp;event&nbsp;is&nbsp;a&nbsp;stroke,&nbsp;given&nbsp;that&nbsp;it&nbsp;happens&nbsp;and&nbsp;that&nbsp;given&nbsp;age.</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-__init__"><strong>__init__</strong></a>(self, parent<font color="#909090">=None</font>, population_size<font color="#909090">=1000</font>, simulation_time<font color="#909090">=1</font>, HealthChecks<font color="#909090">=False</font>, randseed<font color="#909090">=0</font>, randpars<font color="#909090">=False</font>, nprocs<font color="#909090">=4</font>, verbose<font color="#909090">=False</font>)</dt></dl>
+
+<dl><dt><a name="HealthChecksModel-bmimatch_core_process"><strong>bmimatch_core_process</strong></a>(self, l, t, j_min, loopsize, out_q)</dt><dd><tt>search&nbsp;process&nbsp;within&nbsp;BMI&nbsp;match&nbsp;routine<br>
+for&nbsp;loop&nbsp;over&nbsp;population&nbsp;to&nbsp;be&nbsp;parallelised<br>
+&nbsp;<br>
+this&nbsp;function&nbsp;contains&nbsp;a&nbsp;loop&nbsp;to&nbsp;make&nbsp;it&nbsp;computationally&nbsp;more&nbsp;'expensive'<br>
+than&nbsp;a&nbsp;single&nbsp;execution,&nbsp;toward&nbsp;optimising&nbsp;parallelisation,&nbsp;since&nbsp;single&nbsp;execution<br>
+has&nbsp;too&nbsp;much&nbsp;overhead</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-bpmatch_core_process"><strong>bpmatch_core_process</strong></a>(self, l, t, j_min, loopsize, out_q)</dt><dd><tt>search&nbsp;process&nbsp;within&nbsp;BP&nbsp;match&nbsp;procedure<br>
+for&nbsp;loop&nbsp;over&nbsp;population&nbsp;to&nbsp;be&nbsp;parallelised</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-cholmatch_core_process"><strong>cholmatch_core_process</strong></a>(self, l, t, j_min, loopsize, out_q)</dt><dd><tt>search&nbsp;process&nbsp;within&nbsp;cholesterin&nbsp;match&nbsp;procedure&nbsp;for&nbsp;loop<br>
+over&nbsp;population&nbsp;to&nbsp;be&nbsp;parallelised</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-glyhbmatch_core_process"><strong>glyhbmatch_core_process</strong></a>(self, l, t, j_min, loopsize, out_q)</dt><dd><tt>search&nbsp;process&nbsp;within&nbsp;GlyHb&nbsp;match&nbsp;procedure<br>
+for&nbsp;loop&nbsp;over&nbsp;population&nbsp;to&nbsp;be&nbsp;parallelised</tt></dd></dl>
+
+<dl><dt><a name="HealthChecksModel-smokematch_core_process"><strong>smokematch_core_process</strong></a>(self, l, t, j_min, loopsize, out_q)</dt><dd><tt>routine&nbsp;to&nbsp;search&nbsp;for&nbsp;matching&nbsp;individuals&nbsp;in&nbsp;the&nbsp;ELSA&nbsp;dataset<br>
+to&nbsp;be&nbsp;used&nbsp;for&nbsp;the&nbsp;multiprocessing&nbsp;module</tt></dd></dl>
+
+</td></tr></table></td></tr></table><p>
+<table width="100%" cellspacing=0 cellpadding=2 border=0 summary="section">
+<tr bgcolor="#55aa55">
+<td colspan=3 valign=bottom>&nbsp;<br>
+<font color="#ffffff" face="helvetica, arial"><big><strong>Data</strong></big></font></td></tr>
+    
+<tr><td bgcolor="#55aa55"><tt>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</tt></td><td>&nbsp;</td>
+<td width="100%"><strong>parms</strong> = {'AHT_compliance': 0.55, 'AHT_compliance95': 0.45, 'AHT_compliance_betaa': 52.55069, 'AHT_compliance_betab': 43.80485, 'AHT_dropout_rate': 0.05, 'AHT_eff_age55minus_DBP': -4.14, 'AHT_eff_age55minus_DBP95': -5.81, 'AHT_eff_age55minus_DBP_std': 0.8520408163265306, 'AHT_eff_age55minus_SBP': -6.29, 'AHT_eff_age55minus_SBP95': -9.26, ...}</td></tr></table>
+</body></html>
