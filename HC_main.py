@@ -2724,7 +2724,7 @@ class HealthChecksModel:
         # Base number: 8.1% of those eligible attend in a given year (2012/13 number)
         # Ratios to apply to scaling 8.1% (the base number) up down:
         #
-        # Ratio
+        # REGIONS NOT USED
         # North East      1
         # North West      1.48
         # Yorkshire & Humber  1.32
@@ -2752,6 +2752,7 @@ class HealthChecksModel:
         # Non-smoker  1
         # Smoker      0.77
         #
+        # DRINKING NOT USED 
         # Non-drinker 1
         # Drink trivial/light 0.92
         # Drink moderate+ 1.01
@@ -3866,7 +3867,7 @@ class HealthChecksModel:
                 hc_hypert = (i_att * i_BP_high).sum()
                 BP_high_proportion = hc_hypert / float(i_att.sum())
                 self.AHT_prescription_scaling[i] = 1./BP_high_proportion
-
+    
                 p_Q20minus = np.random.random(self.population_size) < (self.up_HC_aht_presc_Q20minus * self.AHT_prescription_scaling[i] )
                 p_Q20plus = np.random.random(self.population_size) < (self.up_HC_aht_presc_Q20plus * self.AHT_prescription_scaling[i])
 
@@ -4046,15 +4047,16 @@ class HealthChecksModel:
             male_ns = male * nsmoker
             female_s = female * smoker
             female_ns = female * nsmoker
-
+            
             self.LC_incidence[male_s] = LC_male_s_inc[male_s]
             self.LC_incidence[female_s] = LC_female_s_inc[female_s]
             self.LC_incidence[male_ns] = LC_male_ns_inc[male_ns]
             self.LC_incidence[female_ns] = LC_female_ns_inc[female_ns]
-
-
+            
             r = np.random.random(self.population_size)
-            LC_event = r<self.LC_incidence
+            LC_risk = 1 - np.exp(-self.LC_incidence)
+            
+            LC_event = r < LC_risk
             self.LungCancer[LC_event,i:] = 1
             self.LungCancerEvents[LC_event * (self.alive[:,i]==1),i] = 1
 
@@ -4221,7 +4223,6 @@ class HealthChecksModel:
 
             # convert CFR to probability of death within next year
             self.LC_mortality = 1 - np.exp(-self.LC_mortality)
-
 
             r = np.random.random(self.population_size)
             Ldies = (r<self.LC_mortality) * (self.LungCancer[:,i]==1)

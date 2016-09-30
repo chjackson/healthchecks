@@ -11,7 +11,7 @@ import getresults as gr
 st = 70
 ps = 25000
 n_cpus = 4
-prefix = "results/batch_mortred/scenall"
+prefix = "results/sep30/scen"
 if (len(sys.argv) > 1):
     run = int(sys.argv[1])
 else: run = 0
@@ -151,8 +151,8 @@ r += 1
 
 H1, HS, HA, HW, HC = initmodels()
 for h in [H1, HS, HA, HW, HC]:
-    h.SetUncertainParameter('up_HC_aht_presc_Q20minus', 0.05) # was 0.0154
-    h.SetUncertainParameter('up_HC_aht_presc_Q20plus', 0.1)  # was 0.0248
+    h.SetUncertainParameter('up_HC_aht_presc_Q20minus', 0.04) # was 0.0154
+    h.SetUncertainParameter('up_HC_aht_presc_Q20plus', 0.06)  # was 0.0248
     h.Run()
 M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
 SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)
@@ -168,7 +168,7 @@ r += 1
 
 H1, HS, HA, HW, HC = initmodels()
 for h in [H1, HS, HA, HW, HC]:
-    h.SetUncertainParameter('up_HC_weight_ref', 0.5) # was 0.275
+    h.SetUncertainParameter('up_HC_weight_ref', 0.7) # was 0.275
     h.Run()
 M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
 SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)
@@ -178,10 +178,10 @@ H1, HS, HA, HW, HC = initmodels()
 for h in [H1, HS, HA, HW, HC]:
     h.SetUncertainParameter('up_HC_statins_presc_Q20minus', 0.05) # was 2%
     h.SetUncertainParameter('up_HC_statins_presc_Q20plus', 0.36)  # was 14%
-    h.SetUncertainParameter('up_HC_aht_presc_Q20minus', 0.05) # was 0.0154
-    h.SetUncertainParameter('up_HC_aht_presc_Q20plus', 0.1)  # was 0.0248
+    h.SetUncertainParameter('up_HC_aht_presc_Q20minus', 0.04) # was 0.0154
+    h.SetUncertainParameter('up_HC_aht_presc_Q20plus', 0.06)  # was 0.0248
     h.SetUncertainParameter('up_HC_smoker_ref', 0.1) # was 0.036
-    h.SetUncertainParameter('up_HC_weight_ref', 0.5) # was 0.275
+    h.SetUncertainParameter('up_HC_weight_ref', 0.7) # was 0.275
     h.Run()
 M[r,],S[r,],N[r,],NT[r,],P[r,],ST[r,] = gr.GetResults_allSub(H, H1, HS, HA, HW, HC, M[r,], S[r,], N[r,], NT[r,], P[r,], ST[r,])
 SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix)
