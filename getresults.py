@@ -2,6 +2,11 @@ import numpy as np
 
 ## TODO do we want different LY and QALY by gender?
 
+## TODO can we do much more of this in Python, leaving R for the formatting
+## Combine all outcomes into one table 
+## M combined with percentages from N combined with percs from process outcomes,
+## combined with short term outcomes? 
+
 def GetResults_longterm(H, H1, M, S, N):
     el_tot = (H1.eligible.sum(axis=1)>0)
     hc_offered = (H1.OfferedHC.sum(axis=1)>0)
@@ -229,7 +234,7 @@ def Process(H, H1):
                qhi_presc_aht, qhi_aht, qlo_presc_aht, qlo_aht,
                nonatt_sbp, nonatt_dbp, 
                att_bmi, hbmi, hbmi_presc_wr, hbmi_wr,
-               lobmi, lobmi_presc_wr, lobmi_wr,
+               lobmi, lobmi_presc_wr, 
                nonatt_bmi,
                att_smk, att_sc, att_quit1, att_nsmk
                ]
@@ -527,6 +532,7 @@ def DeathTrajectories(H, H1, treatment='statins',firstHC=True,CauseOfDeath='all'
         else:
             subgroup = (H1.SmokingCessation_Offered * HC1).sum(axis=1)>0
         treatment_array = H1.SmokingCessation_Offered
+        
     else:
         print('treatment should be one of the following: \'statin\', \'aht\', \'wr\', \'sc\'')
 
@@ -644,7 +650,7 @@ def ShortTermOutcomesTrt(H, H1, trt):
     ADlc,ADlc1,Dlc,Dlc1 = DeathTrajectories(H, H1, treatment=trt, CauseOfDeath='Lung Cancer')
     ADdem,ADdem1,Ddem,Ddem1 = DeathTrajectories(H, H1, treatment=trt, CauseOfDeath='Dementia')
     ADoth,ADoth1,Doth,Doth1 = DeathTrajectories(H, H1, treatment=trt, CauseOfDeath='Other')
-
+    
     # events
     cvd_events_t = np.cumsum(C1)
     cvd_events_c = np.cumsum(C)

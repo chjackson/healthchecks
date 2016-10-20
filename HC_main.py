@@ -40,7 +40,7 @@ np.seterr(all='ignore')
 
 class HealthChecksModel:
 
-    def __init__(self, parent=None, population_size=1000, simulation_time=1, HealthChecks = False, randseed=0, randpars=False, nprocs=4, verbose=False):
+    def __init__(self, parent=None, population_size=1000, simulation_time=1, HealthChecks = False, randseed=0, randpars=False, pars=None, nprocs=4, verbose=False):
 
         # all output printed during simulation
         self.verbose = verbose
@@ -62,16 +62,20 @@ class HealthChecksModel:
         self.randseed = randseed # global random seed
         rnd.seed(self.randseed)
 
-
-
-        # load parameters from HSE file
+        # load baseline parameters from HSE file
         self.LoadPopulationParameters()
+
         # load model parameters
-        #self.parms = copy.deepcopy(parms)
-        if randpars:
-            self.ChangeUncertainParameters()
-        else:
+        if pars is None:
+            if randpars: ## draw random ones 
+                self.ChangeUncertainParameters()
+            else:        ## use point estimates 
+                self.ResetUncertainParameters()
+        else:            ## use supplied values: pars overrides randpars 
             self.ResetUncertainParameters()
+            for k, v in pars.items():
+                self.SetUncertainParameter(k, v)
+
         # load time series from ELSA data
         self.LoadELSA_bp()
         self.LoadELSA_bmi()
@@ -382,10 +386,10 @@ class HealthChecksModel:
 
         self.UP[parname] = parval
         exec('self.%s = parval' % parname)
-        try:
-            print('Parameter %s updated to value %g' % (parname,eval('self.%s' % parname)) )
-        except:
-            pass
+#        try:
+#            print('Parameter %s updated to value %g' % (parname,eval('self.%s' % parname)) )
+#        except:
+#            pass
 
     def GetNumberOfCPUs(self):
         '''returns number of CPUs used for parallel tasks (matchin processes)'''
@@ -2766,7 +2770,7 @@ class HealthChecksModel:
 
         This function attempts to be a speedup to the other Uptake function by using
         numpy methods to populate the propensity vectors instead of native python loops
-        CJ (31/08/2016) renamed Uptake to RelativeUptake, moved absolute uptake stuff to HEALTH CHECKS ASSESSMENT block in Simulate(), since uptake may depend on whether previous HC offer was accepted (Nick's scenario)
+        CJ (31/08/2016) renamed Uptake to RelativeUptake, moved absolute uptake stuff to HEALTH CHECKS ASSESSMENT block in Simulate(), since uptake may depend on whether previous HC offer was accepted 
         '''
 
         # evaluate uptake factors
@@ -3938,8 +3942,16 @@ class HealthChecksModel:
             rel_risk, stroke_risk = self.GetCVDRisks(i)
             # draw random numbers - whoever is below the relative risk, develops an event next year,
             # based on QRisk
-
             cvd_risk = (self.QRisk[:,i]/100.0)*rel_risk # divide by 100 as QRisk is in percentages
+
+            ## alternative based on life table data (unused, for testing) 
+            cvd_inc = np.zeros(self.population_size)
+            cvd_inc_male = self.LT_ihd[age,1] + self.LT_stroke[age,1]
+            cvd_inc_female = self.LT_ihd[age,4] + self.LT_stroke[age,4]            
+            cvd_inc[male] = cvd_inc_male[male]
+            cvd_inc[female] = cvd_inc_female[female]
+##            cvd_risk = cvd_inc 
+
             r = np.random.random(self.population_size)
             cvd_event = r<cvd_risk
 
@@ -4135,7 +4147,11 @@ class HealthChecksModel:
             self.Death[STdies*nodeath,i] = 1
             self.CauseOfDeath[STdies*nodeath] = 'Stroke'
 
-
+            ## count people with multiple diseases
+#            stroke_and_ihd = (self.Stroke[:,i]==1) * (self.IHD[:,i]==1) * (self.alive[:,i] == 1)
+#            stroke_and_ihd_and_dem = (self.Stroke[:,i]==1) * (self.IHD[:,i]==1) * (self.Dementia[:,i]==1) * (self.alive[:,i] == 1)
+#            ihd_and_dem = (self.IHD[:,i]==1) * (self.Dementia[:,i]==1) * (self.alive[:,i] == 1)
+#            print i, stroke_and_ihd.mean(), stroke_and_ihd_and_dem.mean(), ihd_and_dem.mean()
 
             # mortality by IHD
 

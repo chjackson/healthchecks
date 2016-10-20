@@ -41,7 +41,7 @@ P['QR'] = np.array([0.6427019, 1, 1.5406470, 1.8957039, 2.3402212])
 # HC uptake log odds ratios and SEs on the log scale
 P['gender_log'] = np.array([0.0, 0.07842257])
 P['age_log'] = np.array([-0.4674048,  0.0,  0.4108643,  0.5025921 ])
-P['eth_log'] = np.array([ 0.0,  0.028425776, -0.008832112, -0.134486029 ])
+P['ethnicity_log'] = np.array([ 0.0,  0.028425776, -0.008832112, -0.134486029 ])
 P['SES_log'] = np.array([ 0.0, -0.026114027, -0.012976328,  0.006648585,  0.222438803 ])
 P['smoker_log'] = np.array([ 0.0, -0.2962096  ])
 P['QR_log'] = np.array([-0.4420743,  0.0,  0.4322024,  0.6395902,  0.8502454  ])
@@ -143,7 +143,7 @@ P['Smoking_eff_betab'] = 1080.4478
 
 # BMI change after weight management
 P['Weight_eff'] = -1.5
-P['Weight_eff_std'] = 0.007 # from Stubbs et al
+P['Weight_eff_std'] = 0.007 
 
 # Statins effectiveness
 # as measured as reduction in total cholesterol at 1 year
