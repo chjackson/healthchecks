@@ -2,31 +2,47 @@
 
 library(tidyverse)
 
-nruns <- 100
-aname <- "results/oct16/scen"
+nruns <- 20
+aname <- "results/fixage3/scen"
 nsc <- 16; 
 
-#nruns <- 1000
-#aname <- "~/scratch/hc/healthchecks/results/unc/unc"
+#nruns <- 40
+#aname <- "results/fixage/scen"
 #nsc <- 1; 
 
 ### TODO REMOVE lobmi_wr in future runs and edit pnms
 
-nouts <- 6; npops <- 8
-outn <- c("QALY_con","QALY_hc","IQALY","LY_con","LY_hc","ILY")
+npops <- 8
+#outn <- c("QALY_con","QALY_hc","IQALY","LY_con","LY_hc","ILY",
+#          "D65_con","D65_hc","ID65","C65_con","C65_hc","IC65",
+#          "D70_con","D70_hc","ID70","C70_con","C70_hc","IC70")
+evn <- c("D","C","DC","DE","LC","DI")
+outn.ev <- paste(rep(evn, each=3), rep(c(65,70), each=length(evn)*3), paste(rep(c("_con","_hc","_i"), length(evn)),sep=""),sep="")
+outn <- c("QALY_con","QALY_hc","IQALY","LY_con","LY_hc","ILY",outn.ev)
+nouts <- length(outn)
+
+i <- 0
+M <- array(as.matrix(read.csv(sprintf("%s_mean_%s.csv",aname,i),header=FALSE)), dim=c(nsc, nouts, npops))
+dimnames(M) <- list(scn,outn,mn[1:8])
+foo <- matrix(M[1,,1]*1000, ncol=3, byrow=TRUE)
+rownames(foo) <- c("QALY","LY",paste(rep(evn, 2), rep(c(65,70),each=length(evn)), sep=""))
+
 
 mn <- c("All", "Eligible", "Attending", "Any treatment", "Statins via HC", "Antihypertensives via HC", "Smoking cessation via HC", "Weight management via HC","Number of HCs")
 
-scn <- c("Base case","BP", "Attend age 50-74", "Attend age 40-80", "Attend age 50-80", "Baseline uptake 0.85 (from 0.48)","Uptake 10 - 20% more in most deprived","Uptake of smokers +30%","+20% uptake for QRisk > 15","Statin prescription x 2.5", "AHT prescription x 2.5", "Smoking referral x 2.5", "Weight referral x 2.5", "All treatments x 2.5", "Attenders keep attending", "Target non-attenders")[1:nsc]
+scn <- c("Base case","Invite high BP", "Attend age 50-74", "Attend age 40-80", "Attend age 50-80", "Baseline uptake 0.85 (from 0.48)","Uptake 10 - 20% more in most deprived","Uptake of smokers +30%","+20% uptake for QRisk > 15","Statin prescription x 2.5", "AHT prescription x 2.5", "Smoking referral x 2.5", "Weight referral x 2.5", "All treatments x 2.5", "Attenders keep attending", "Target non-attenders")[1:nsc]
 
 M <- S <- N <- NT <- Npop <- Tot <- Sumsq <- P <- SH <- vector(nruns, mode="list")
 Marr <- array(dim=c(nruns, nsc, nouts, npops)) # different format, for statistical uncertainty
 Parr <- array(dim=c(nruns, nsc, npops)) # different format, for statistical uncertainty
 
 for (i in 1:nruns){
-    M[[i]] <- array(as.matrix(read.csv(sprintf("%s_mean_%s.csv",aname,i),header=FALSE)), dim=c(nsc, nouts, npops))*365.25
-    Marr[i,,,] <- array(as.matrix(read.csv(sprintf("%s_mean_%s.csv",aname,i),header=FALSE)), dim=c(nsc, nouts, npops))*365.25
-    S[[i]] <- array(as.matrix(read.csv(sprintf("%s_SD_%s.csv",aname,i),header=FALSE)), dim=c(nsc, nouts, npops))*365.25
+    M[[i]] <- array(as.matrix(read.csv(sprintf("%s_mean_%s.csv",aname,i),header=FALSE)), dim=c(nsc, nouts, npops))
+    Marr[i,,,] <- array(as.matrix(read.csv(sprintf("%s_mean_%s.csv",aname,i),header=FALSE)), dim=c(nsc, nouts, npops))
+    S[[i]] <- array(as.matrix(read.csv(sprintf("%s_SD_%s.csv",aname,i),header=FALSE)), dim=c(nsc, nouts, npops))
+    M[[i]][,1:6,] <- M[[i]][,1:6,] * 365.25
+    S[[i]][,1:6,] <- S[[i]][,1:6,] * 365.25
+    Marr[,,1:6,] <- Marr[,,1:6,] * 365.25 
     N[[i]] <- as.matrix(read.csv(sprintf("%s_N_%s.csv",aname,i),header=FALSE))
     NT[[i]] <- as.matrix(read.csv(sprintf("%s_NT_%s.csv",aname,i),header=FALSE))
     if (nsc==1){
@@ -63,9 +79,12 @@ for (j in 1:nouts){
     L[,j,] <- M[,j,] - qnorm(0.975)*SE[,j,]
     U[,j,] <- M[,j,] + qnorm(0.975)*SE[,j,]
 }
-M[,3,]
-SE[,3,]
-SE[,3,] / M[,3,] ## SE is 5% of mean after 12 runs
+
+#for (i in 1:nruns) dimnames(M[[i]]) <- dimnames(S[[i]]) <- list(scn, outn, mn[1:npops])
+#M[[1]][,c("C65_con","C65_hc","IC65"),"All"]*25000*nruns
+#M[,3,]
+#SE[,3,]
+#SE[,3,] / M[,3,] ## SE is 5% of mean after 12 runs
 
 if (nsc==1) { 
 ### Statistical standard error (posterior standard deviation)
@@ -91,7 +110,9 @@ Prarr <- array(dim=c(nruns, 37))
 
 for (i in 1:nruns){
     P[[i]] <- read.csv(sprintf("%s_process_%s.csv",aname,i), header=FALSE,
-                       col.names=c("popsize","eligible","attending","att_q","att_chol","att_hdl","qhi","qhi_presc_stat","qhi_stat","qlo","qlo_presc_stat","qlo_stat","nonatt","nonatt_q","nonatt_chol","nonatt_h","att_sbp","att_dbp","att_nhbp","qhi_presc_aht","qhi_aht","qlo_presc_aht","qlo_aht","nonatt_sbp","nonatt_dbp", "att_bmi","hbmi","hbmi_presc_wr","hbmi_wr","lobmi","lobmi_presc_wr","lobmi_wr","nonatt_bmi","att_smk","att_sc","att_quit1","att_nsmk"))
+                       col.names=c("popsize","eligible","attending","att_q","att_chol","att_hdl","qhi","qhi_presc_stat","qhi_stat","qlo","qlo_presc_stat","qlo_stat","nonatt","nonatt_q","nonatt_chol","nonatt_h","att_sbp","att_dbp","att_nhbp","qhi_presc_aht","qhi_aht","qlo_presc_aht","qlo_aht","nonatt_sbp","nonatt_dbp", "att_bmi","hbmi","hbmi_presc_wr","hbmi_wr","lobmi","lobmi_presc_wr",
+                                   #"lobmi_wr",
+                                   "nonatt_bmi","att_smk","att_sc","att_quit1","att_nsmk"))
     SH[[i]] <- read.csv(sprintf("%s_short_%s.csv",aname,i), header=FALSE,
                         col.names=c("trt",
                                     "Q1", "Q", "CH1", "CH", "HDL1", "HDL", "SBP1", "SBP", "DBP1", "DBP", "BMI1", "BMI", "SM_t", "SM_c",
@@ -134,7 +155,9 @@ if (nsc==1)
     dimnames(SHarr)[2:3] <- dimnames(select(SH[[1]], -trt))
 
 
-ns <- c("popsize","eligible","attending","qhi","qhi_presc_stat","qhi_stat","qlo","qlo_presc_stat","qlo_stat","nonatt","att_nhbp","qhi_presc_aht","qhi_aht","qlo_presc_aht","qlo_aht","hbmi","hbmi_presc_wr","hbmi_wr","lobmi","lobmi_presc_wr","lobmi_wr","att_smk","att_sc","att_quit1","att_nsmk")
+ns <- c("popsize","eligible","attending","qhi","qhi_presc_stat","qhi_stat","qlo","qlo_presc_stat","qlo_stat","nonatt","att_nhbp","qhi_presc_aht","qhi_aht","qlo_presc_aht","qlo_aht","hbmi","hbmi_presc_wr","hbmi_wr","lobmi","lobmi_presc_wr",
+        #"lobmi_wr",
+        "att_smk","att_sc","att_quit1","att_nsmk")
 Pns <- lapply(P, function(x)x[,ns])
 Pns <- Reduce("+", Pns)
 Ptot <- Reduce("+", Ptot) / Reduce("+", Pdenom)
@@ -158,7 +181,9 @@ pnms <- c("Population", "Eligible at least once", "Attending at least once",
             "Prescribed AHT (Q>20)", "AHT (Q>20)",  "Prescribed AHT (Q<20)", "AHT (Q<20)",
             "SBP (non-attenders; all HCs)", "DBP (non-attenders; all HCs)",
             "BMI (attenders; all HCs)", "BMI>30 (first HC)", "Referred to weight management", "Weight management", 
-            "BMI<30 (first HC)", "Referred to weight management (BMI<30)", "Weight management (BMI<30)", 
+            "BMI<30 (first HC)",
+          "Referred to weight management (BMI<30)",
+          #"Weight management (BMI<30)", 
             "BMI(non-attenders)",
             "Smokers (first HC)", "Referred to smoking cessation", "Quit by 1 year due to cessation service", "Non-smokers")
 

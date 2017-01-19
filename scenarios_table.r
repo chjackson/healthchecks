@@ -27,7 +27,7 @@ P[1:7] <- 100 * P[1:7]
 Pperc <- P[1:7]
 perc <- paste0(round(Pperc, 1), "% (", signif(PSD[1:7]*100,1), ")")
 nhc <- paste0(round(P[8], 1), " (", signif(PSD[8], 1), ")")
-Mhcbase <- M[,"IQALY",1] / P["Number of HCs"]
+Mhcbase <- M[,"IQALY",1] / P["Number of HCs"] # mean qaly per HC 
 resn <- round(Mhcbase, 1)
 resns <- round(SD[,3,1] / P["Number of HCs"], 1)
 resn <- paste0(resn, " (", resns, ")")
@@ -74,14 +74,15 @@ resn <- round(Mhc, 1)
 resns <- round(SE[,"IQALY",1] / P[,"Number of HCs"], 1)
 resn <- paste0(resn, " (", resns, ")")
 
-### GAINS VS NO HC AS WELL AS VS BASE 
-Mabs <- M[-1,"IQALY",] + Mbase[rep(1,nsc-1),"IQALY",]
-Mhcabs <- Mhc[-1] + Mhcbase
-resmabs <- rbind(t(Mabs[,1:4]), Mhcabs)
-resmabs <- round(resmabs[c(1,5,2,3,4),], 1)
-resmabs <- resmabs[,c(1:4, 5:8, 15, 9:13)]
+### GAINS VS NO HC AS WELL AS VS BASE
+## isn't this done already
+#Mabs <- M[-1,"IQALY",] + Mbase[rep(1,nsc-1),"IQALY",] # 8 pops, 15 scenarios
+#Mhcabs <- Mhc[-1] + Mhcbase
+#resmabs <- rbind(t(Mabs[,1:4]), Mhcabs)
+#resmabs <- round(resmabs[c(1,5,2,3,4),], 1)
+#resmabs <- resmabs[,c(1:4, 5:8, 15, 9:13)]
 
-write.table(resmabs, file="hc_scenarios_vsnohc.txt", sep="\t", quote=FALSE)
+write.table(resmabs, file="hc_scenarios_vsnohc_fixage.txt", sep="\t", quote=FALSE)
 ## TODO gains per hc 
 
 short <- short %>%
@@ -156,4 +157,75 @@ rownames(res) <- c(
 write.table(res[, 1:5], file="hc_scenarios_results1.txt", sep="\t", quote=FALSE)
 write.table(res[, c(6:9,16)], file="hc_scenarios_results2.txt", sep="\t", quote=FALSE)
 write.table(res[, c(10:14)], file="hc_scenarios_results3.txt", sep="\t", quote=FALSE)
+write.table(res[, 1:5], file="hc_scenarios_fixage1.txt", sep="\t", quote=FALSE)
+write.table(res[, c(6:9,16)], file="hc_scenarios_fixage2.txt", sep="\t", quote=FALSE)
+write.table(res[, c(10:14)], file="hc_scenarios_fixage3.txt", sep="\t", quote=FALSE)
 
+
+
+### EVENT COUNT REDUCTIONS 
+
+n <- 25000*nruns
+rese <- round(M[,c("D65_con","D65_hc","ID65", "C65_con","C65_hc","IC65",
+                   "D70_con","D70_hc","ID70", "C70_con","C70_hc","IC70"),"All"]*n
+colnames(rese) <- rep(c("Control","HC","Control-HC"), 4)
+
+write.table(rese, sep="\t", quote=FALSE, file="hc_events.txt")
+
+
+## MCSEs are negligible with 1 million
+
+
+
+
+### TABLE OF EVENT COUNTS
+npop <- 25000*nruns
+Mall <- round(as.data.frame(M[,outn.ev,"All"]*npop))
+inm <- outn.ev[grep("_i",outn.ev)]
+cnm <- outn.ev[grep("(_con)|(_i)",outn.ev)]
+Mall <- Mall[,cnm]
+Mi <- Mall[,inm]
+Mi[2:nsc,] <- Mi[rep(1,nsc-1),] + Mi[2:nsc,]
+nnp <- round(npop / Mi); nnp[nnp<0|nnp==Inf] <- NA  # event averted (compared to no HC) in 1 in N people 
+names(nnp) <- paste0(paste0(rep(evn,2),rep(c(65,70),each=length(evn))),"_n")
+res <- as.data.frame(matrix(nrow=nrow(Mall), ncol=ncol(Mall)+ncol(nnp)))
+nind <- seq(3, ncol(res), by=3)
+oind <- setdiff(1:ncol(res), seq(3, ncol(res), by=3))
+res[,nind] <- nnp; names(res)[nind] <- names(nnp)
+res[,oind] <- Mall; names(res)[oind] <- names(Mall)
+options(scipen=9)
+res <- res[,-nind] # leave out for now 
+write.table(res[,grep(65, names(res))], file="events_data65.txt", na="", quote=FALSE, sep="\t")
+write.table(res[,grep(70, names(res))], file="events_data70.txt", na="", quote=FALSE, sep="\t")
+res[,grep(70, names(res))]
+#res[,grep("_con", names(res))] <- round(100*res[,grep("_con", names(res))] / npop,1)
+#res[,grep("_i", names(res))] / 1000000
+
+
+## TODO paste baseline(averted).  no need for other one ? 
+## percentage having event in baseline.
+## plus number of events averted per 1000 people? 
+
+write.table(Mall, sep="\t", quote=FALSE)
+write.table(Mall, file="events_data.txt", sep="\t", quote=FALSE)
+
+percs <- 100 * Mall[,c("ID65","ID70","IC65","IC70")] / (npop)
+
+M[,c("D65_con","D65_hc","ID65"),"All"]*npop
+M[,c("D70_con","D70_hc","ID70"),"All"]*npop
+M[,c("C65_con","C65_hc","IC65"),"All"]*npop
+M[,c("C70_con","C70_hc","IC70"),"All"]*npop
+
+M[,c("D65_con","D65_hc","ID65","D70_con","D70_hc","ID70"),"All"]*npop
+
+M[,c("C65_con","C65_hc","IC65","C70_con","C70_hc","IC70"),"All"]*npop
+
+
+## MC error with 250000
+## Takes 32716 seconds.  2.5 million would take 3.8 days
+
+#p <- M[,c("D65_con","D65_hc","D70_con","D70_hc","C65_con","C65_hc","C70_con","C70_hc"),"All"]
+#p*npop
+#vr <- (npop)*p*(1-p)  
+#sqrt(vr[,c("D65_con","D70_con","C65_con","C70_con")] + vr[,c("D65_hc","D70_hc","C65_hc","C70_hc")])
+## but they are not independent - pre-HC outcomes are the same, only  the seeds are controlled

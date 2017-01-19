@@ -40,7 +40,9 @@ np.seterr(all='ignore')
 
 class HealthChecksModel:
 
-    def __init__(self, parent=None, population_size=1000, simulation_time=1, HealthChecks = False, randseed=0, randpars=False, pars=None, nprocs=4, verbose=False):
+    def __init__(self, parent=None, population_size=1000, simulation_time=1, HealthChecks = False,
+                 randseed=0, randpars=False, pars=None, nprocs=4, verbose=False,
+                 baseage_min=30, baseage_max=75):
 
         # all output printed during simulation
         self.verbose = verbose
@@ -52,9 +54,8 @@ class HealthChecksModel:
         self.P = np.ndarray(())
         self.npydir = 'data/matching_npys' # directory in which npy arrays for the matching process are stored
         self.Health_Checks = HealthChecks # True if Health Checks process is simulated, False if simulated without Health Checks
-
-
-
+        self.baseage_min = baseage_min
+        self.baseage_max = baseage_max
 
         # random seeds
 
@@ -1306,30 +1307,33 @@ class HealthChecksModel:
         # columns:  (0) male_White, (1) male_Asian, (2) male_Black, (3) male_Mixed/other,
         #           (4) female_White, (5) female_Asian, (6) female_Black, (7) female_Mixed/other
 
+        ## Subset census data to include only rows whose start age is within the age bands 
+        in_age_bands = (self.parms['census_ages'] >= self.baseage_min)*(self.parms['census_ages'] <= self.baseage_max)
+        nr_ind = self.parms['census_prop'][in_age_bands, : ]
+        nr_ind = nr_ind / nr_ind.sum()
+        bins = self.parms['census_ages'][in_age_bands]
+
         # establish how many individuals of each census combination are needed
-        nr_ind = np.round(self.parms['census_prop'] * self.population_size)
+        nr_ind = np.round(nr_ind * self.population_size)
         nr_ind = np.array(nr_ind,dtype = int)
         # check how much total nr_ind is off from population_size
         discrepancy = int(nr_ind.sum() - self.population_size)
         direction = np.sign(discrepancy)
 
-
         np.random.seed(0)
 
+        rows = nr_ind.shape[0]
+        cols = nr_ind.shape[1]
         # add/subtract this number from random entries, such that nr_ind sums up to population size
         for i in range(np.abs(discrepancy)):
-            x = np.random.randint(0,7)
-            y = np.random.randint(0,7)
+            x = np.random.randint(0,rows)
+            y = np.random.randint(0,cols)
             nr_ind[x,y] -= direction
 
         self.nr_ind = nr_ind.copy()
         self.nr_ind_original = nr_ind.copy()
 
         # give an unique index to every entry in nr_ind
-
-        rows = 9
-        cols  = 8
-        # 7 rows and 7 cols in nr_ind
         idx = np.zeros((rows,cols),dtype=int)
         for i in range(rows):
             for j in range(cols):
@@ -1359,13 +1363,12 @@ class HealthChecksModel:
 
             # establish if picked individual is in the right age range (30-75)
             agerange = False
-            if (age_pick >= 30) * (age_pick <= 75) == 1:
+            if (age_pick >= self.baseage_min) * (age_pick <= self.baseage_max) == 1:
                 agerange = True
 
 
             # which age band is this individual in
             if agerange == True:
-                bins = np.arange(30,80,5)
                 age = np.array([age_pick])
                 age_idx = np.digitize(age,bins)[0] - 1
 
@@ -1400,7 +1403,7 @@ class HealthChecksModel:
 
                 # now we have for each of the selected HSE individuals with complete data (ok_all) information on which index it is in nr_ind
                 self.HSE_idx[i] = 1 + age_idx*cols + sex_eth_idx
-
+    
 
         # now go through all the category combination bins:
         #  how many individuals of each bin are needed?
@@ -1607,6 +1610,7 @@ class HealthChecksModel:
         assign these to the individuals with highest QRisk for these age groups'''
 
         np.random.seed(self.randseed)
+        rnd.seed(self.randseed)
 
         self.stroke_init = np.zeros(self.population_size,dtype=bool)
         self.IHD_init = np.zeros(self.population_size,dtype=bool)
@@ -1672,7 +1676,7 @@ class HealthChecksModel:
 
             r_female = np.random.random(a_female.sum())
             female_IHD_events = (r_female < arisk_IHD_female).sum()
-
+            
             # same procedure as above for stroke
 
             if male_IHD_events > 0 :
@@ -3290,8 +3294,9 @@ class HealthChecksModel:
             # at a given age, how many are there with one of the 5 risks?
             nC_male = np.zeros((100,5))
             nC_female = np.zeros((100,5))
-            C = np.unique(self.DementiaRisk[self.DementiaRisk>0])/100.0
-
+#            C = np.unique(self.DementiaRisk[self.DementiaRisk>0])/100.0
+            C = np.array([1, 1.9, 4.2, 7.4, 16.4]) / 100.0
+            
             for a in range(100):
                 for i in range(5):
                     nC_male[a,i] = (C_select_male[j_age_male==a]==C[i]).sum()
@@ -3317,7 +3322,7 @@ class HealthChecksModel:
                     rel_risk[j_male] = x_select_male
                     rel_risk[j_female] = x_select_female
             except:
-                print i,C_select_male,C_select_female
+                pass
 
             # CAIDE-based risks are taken from current CAIDE
             CAIDE_risk = self.DementiaRisk[:,t]/100.0
@@ -3346,7 +3351,7 @@ class HealthChecksModel:
         h = ['without Health Check', 'with Health Checks']
 
         for i in range(0, self.simulation_time):
-
+            
             # define if random seed is globally applied at beginning of each timestep:
             if self.RandomSeed['Start_Of_Each_Timestep'] == True:
                 np.random.seed(i+10101)
@@ -3871,6 +3876,7 @@ class HealthChecksModel:
                 hc_hypert = (i_att * i_BP_high).sum()
                 BP_high_proportion = hc_hypert / float(i_att.sum())
                 self.AHT_prescription_scaling[i] = 1./BP_high_proportion
+
     
                 p_Q20minus = np.random.random(self.population_size) < (self.up_HC_aht_presc_Q20minus * self.AHT_prescription_scaling[i] )
                 p_Q20plus = np.random.random(self.population_size) < (self.up_HC_aht_presc_Q20plus * self.AHT_prescription_scaling[i])
@@ -3882,6 +3888,9 @@ class HealthChecksModel:
                 self.Hypertensives_Offered[aht_q20minus,i] = 1
                 self.Hypertensives_Offered[aht_q20plus,i] = 1
 
+## number of attenders offered AHTs, and number of attenders with high BP, at each cycle
+#                print (self.Attending[:,i]*self.Hypertensives_Offered[:,i]).sum(), (self.Attending[:,i]*i_BP_high).sum()
+                        
                 # AHT compliance
                 aht_compliance = np.zeros(self.population_size, dtype=bool)
                 r = np.random.random(self.population_size)
@@ -3936,7 +3945,6 @@ class HealthChecksModel:
 
                 self.CVD[self.stroke_init,i:] = 1
                 self.CVD[self.IHD_init,i:] = 1
-
 
             # CVD: STROKE AND IHD
             rel_risk, stroke_risk = self.GetCVDRisks(i)

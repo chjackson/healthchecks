@@ -7,77 +7,69 @@ import numpy as np
 ## M combined with percentages from N combined with percs from process outcomes,
 ## combined with short term outcomes? 
 
+def GetResults_sub(sub, ind, H, H1, M, S, NT):
+    M[ind,0] = (H.QALY[sub]).mean()
+    M[ind,1] = (H1.QALY[sub]).mean()
+    M[ind,2] = (H1.QALY[sub] - H.QALY[sub]).mean()
+    M[ind,3] = (H.LY[sub]).mean()
+    M[ind,4] = (H1.LY[sub]).mean()
+    M[ind,5] = (H1.LY[sub] - H.LY[sub]).mean()
+    S[ind,0] = (H.QALY[sub]).std()
+    S[ind,1] = (H1.QALY[sub]).std()
+    S[ind,2] = (H1.QALY[sub] - H.QALY[sub]).std()
+    S[ind,3] = (H.LY[sub]).std()
+    S[ind,4] = (H1.LY[sub]).std()
+    S[ind,5] = (H1.LY[sub] - H.LY[sub]).std()
+
+    H.dead = np.logical_not(H.alive)
+    H1.dead = np.logical_not(H1.alive)    
+    H.CVDordead = np.logical_or(H.CVD, H.dead)
+    H1.CVDordead = np.logical_or(H1.CVD, H1.dead)
+    CVDdeath = np.logical_or(H.CauseOfDeath == 'IHD', H.CauseOfDeath == 'Stroke')
+    H.deadCVD = H.dead * np.resize(CVDdeath, np.flipud(H.dead.shape)).T # broadcast vector to match array 
+    CVDdeath = np.logical_or(H1.CauseOfDeath == 'IHD', H1.CauseOfDeath == 'Stroke')
+    H1.deadCVD = H1.dead * np.resize(CVDdeath, np.flipud(H1.dead.shape)).T
+    
+    ## Counts of events by specific ages 
+    outcomes = ['dead', 'CVD', 'deadCVD', 'Dementia', 'LungCancer', 'diabetes']
+    ages = [65, 70]
+    for i in ages:
+        for j in outcomes:
+            exec('D = (H.%s * (H.age == %s)).sum(axis=1)' % (j, i))
+            exec('D1 = (H1.%s * (H1.age == %s)).sum(axis=1)' % (j, i))
+            k = 6 + ages.index(i)*3*len(outcomes) + 3*outcomes.index(j)
+            print i, j, k
+            M[ind,k] = (D[sub]).mean()
+            M[ind,k+1] = (D1[sub]).mean()
+            M[ind,k+2] = M[ind,k] - M[ind,k+1]
+            S[ind,k] = (D[sub]).std()
+            S[ind,k+1] = (D1[sub]).std()
+            S[ind,k+2] = np.sqrt(pow(S[ind,k],2) + pow(S[ind,k+1], 2))
+        
+    if (ind>=4):
+        NT[ind-4] = sub.sum()
+    return M,S,NT
+    
+
 def GetResults_longterm(H, H1, M, S, N):
+    allpop = np.ones(H1.population_size, dtype=bool)
     el_tot = (H1.eligible.sum(axis=1)>0)
     hc_offered = (H1.OfferedHC.sum(axis=1)>0)
     att = H1.Attending * H1.eligible  # H1.Attending should give same answer
     n_att_once = (att.sum(axis=1)>0)
     t_offered = (H1.OfferedTreatment.sum(axis=1)>0)
+
     stat = (H1.Statins.sum(axis=1)>0)
     aht = (H1.Hypertensives.sum(axis=1)>0)
     sc = (H1.SmokingCessation.sum(axis=1)>0)
     wr = (H1.WeightReduction.sum(axis=1)>0)
     total_hc = att.sum()
 
-    M[0,0] = (H.QALY).mean()
-    M[1,0] = (H.QALY[el_tot]).mean()
-    M[2,0] = (H.QALY[n_att_once]).mean()
-    M[3,0] = (H.QALY[t_offered]).mean()
-
-    M[0,1] = (H1.QALY).mean()
-    M[1,1] = (H1.QALY[el_tot]).mean()
-    M[2,1] = (H1.QALY[n_att_once]).mean()
-    M[3,1] = (H1.QALY[t_offered]).mean()
-
-    M[0,2] = (H1.QALY - H.QALY).mean()
-    M[1,2] = (H1.QALY[el_tot] - H.QALY[el_tot]).mean()
-    M[2,2] = (H1.QALY[n_att_once] - H.QALY[n_att_once]).mean()
-    M[3,2] = (H1.QALY[t_offered] - H.QALY[t_offered]).mean()
-
-    M[0,3] = (H.LY).mean()
-    M[1,3] = (H.LY[el_tot]).mean()
-    M[2,3] = (H.LY[n_att_once]).mean()
-    M[3,3] = (H.LY[t_offered]).mean()
-
-    M[0,4] = (H1.LY).mean()
-    M[1,4] = (H1.LY[el_tot]).mean()
-    M[2,4] = (H1.LY[n_att_once]).mean()
-    M[3,4] = (H1.LY[t_offered]).mean()
-
-    M[0,5] = (H1.LY - H.LY).mean()
-    M[1,5] = (H1.LY[el_tot] - H.LY[el_tot]).mean()
-    M[2,5] = (H1.LY[n_att_once] - H.LY[n_att_once]).mean()
-    M[3,5] = (H1.LY[t_offered] - H.LY[t_offered]).mean()
-
-    S[0,0] = (H.QALY).std()
-    S[1,0] = (H.QALY[el_tot]).std()
-    S[2,0] = (H.QALY[n_att_once]).std()
-    S[3,0] = (H.QALY[t_offered]).std()
-
-    S[0,1] = (H1.QALY).std()
-    S[1,1] = (H1.QALY[el_tot]).std()
-    S[2,1] = (H1.QALY[n_att_once]).std()
-    S[3,1] = (H1.QALY[t_offered]).std()
-
-    S[0,2] = (H1.QALY - H.QALY).std()
-    S[1,2] = (H1.QALY[el_tot] - H.QALY[el_tot]).std()
-    S[2,2] = (H1.QALY[n_att_once] - H.QALY[n_att_once]).std()
-    S[3,2] = (H1.QALY[t_offered] - H.QALY[t_offered]).std()
-
-    S[0,3] = (H.LY).std()
-    S[1,3] = (H.LY[el_tot]).std()
-    S[2,3] = (H.LY[n_att_once]).std()
-    S[3,3] = (H.LY[t_offered]).std()
-
-    S[0,4] = (H1.LY).std()
-    S[1,4] = (H1.LY[el_tot]).std()
-    S[2,4] = (H1.LY[n_att_once]).std()
-    S[3,4] = (H1.LY[t_offered]).std()
-
-    S[0,5] = (H1.LY - H.LY).std()
-    S[1,5] = (H1.LY[el_tot] - H.LY[el_tot]).std()
-    S[2,5] = (H1.LY[n_att_once] - H.LY[n_att_once]).std()
-    S[3,5] = (H1.LY[t_offered] - H.LY[t_offered]).std()
+    NT = np.zeros(4, dtype=int) # unused in this function
+    M, S, NT = GetResults_sub(allpop,     0, H, H1, M, S, NT)
+    M, S, NT = GetResults_sub(el_tot,     1, H, H1, M, S, NT)
+    M, S, NT = GetResults_sub(n_att_once, 2, H, H1, M, S, NT)
+    M, S, NT = GetResults_sub(t_offered,  3, H, H1, M, S, NT)
 
     N[1] = el_tot.sum()
     N[2] = n_att_once.sum()
@@ -89,75 +81,6 @@ def GetResults_longterm(H, H1, M, S, N):
     N[8] = total_hc
 
     return M,S,N
-
-def GetResults_stat(H, H1, M, S, NT):
-    stat = (H1.Statins.sum(axis=1)>0)
-    M[4,0] = (H.QALY[stat]).mean()
-    M[4,1] = (H1.QALY[stat]).mean()
-    M[4,2] = (H1.QALY[stat] - H.QALY[stat]).mean()
-    M[4,3] = (H.LY[stat]).mean()
-    M[4,4] = (H1.LY[stat]).mean()
-    M[4,5] = (H1.LY[stat] - H.LY[stat]).mean()
-    S[4,0] = (H.QALY[stat]).std()
-    S[4,1] = (H1.QALY[stat]).std()
-    S[4,2] = (H1.QALY[stat] - H.QALY[stat]).std()
-    S[4,3] = (H.LY[stat]).std()
-    S[4,4] = (H1.LY[stat]).std()
-    S[4,5] = (H1.LY[stat] - H.LY[stat]).std()
-    NT[0] = stat.sum()
-    return M,S,NT
-
-def GetResults_aht(H, H1, M, S, NT):
-    aht = (H1.Hypertensives.sum(axis=1)>0)
-    M[5,0] = (H.QALY[aht]).mean()
-    M[5,1] = (H1.QALY[aht]).mean()
-    M[5,2] = (H1.QALY[aht] - H.QALY[aht]).mean()
-    M[5,3] = (H.LY[aht]).mean()
-    M[5,4] = (H1.LY[aht]).mean()
-    M[5,5] = (H1.LY[aht] - H.LY[aht]).mean()
-    S[5,0] = (H.QALY[aht]).std()
-    S[5,1] = (H1.QALY[aht]).std()
-    S[5,2] = (H1.QALY[aht] - H.QALY[aht]).std()
-    S[5,3] = (H.LY[aht]).std()
-    S[5,4] = (H1.LY[aht]).std()
-    S[5,5] = (H1.LY[aht] - H.LY[aht]).std()
-    NT[1] = aht.sum()
-    return M,S,NT
-
-def GetResults_sc(H, H1, M, S, NT):
-    sc = (H1.SmokingCessation.sum(axis=1)>0)
-    M[6,0] = (H.QALY[sc]).mean()
-    M[6,1] = (H1.QALY[sc]).mean()
-    M[6,2] = (H1.QALY[sc] - H.QALY[sc]).mean()
-    M[6,3] = (H.LY[sc]).mean()
-    M[6,4] = (H1.LY[sc]).mean()
-    M[6,5] = (H1.LY[sc] - H.LY[sc]).mean()
-    S[6,0] = (H.QALY[sc]).std()
-    S[6,1] = (H1.QALY[sc]).std()
-    S[6,2] = (H1.QALY[sc] - H.QALY[sc]).std()
-    S[6,3] = (H.LY[sc]).std()
-    S[6,4] = (H1.LY[sc]).std()
-    S[6,5] = (H1.LY[sc] - H.LY[sc]).std()
-    NT[2] = sc.sum()
-    return M,S,NT
-
-def GetResults_wr(H, H1, M, S, NT):
-    wr = (H1.WeightReduction.sum(axis=1)>0)
-    M[7,0] = (H.QALY[wr]).mean()
-    M[7,1] = (H1.QALY[wr]).mean()
-    M[7,2] = (H1.QALY[wr] - H.QALY[wr]).mean()
-    M[7,3] = (H.LY[wr]).mean()
-    M[7,4] = (H1.LY[wr]).mean()
-    M[7,5] = (H1.LY[wr] - H.LY[wr]).mean()
-    S[7,0] = (H.QALY[wr]).std()
-    S[7,1] = (H1.QALY[wr]).std()
-    S[7,2] = (H1.QALY[wr] - H.QALY[wr]).std()
-    S[7,3] = (H.LY[wr]).std()
-    S[7,4] = (H1.LY[wr]).std()
-    S[7,5] = (H1.LY[wr] - H.LY[wr]).std()
-    NT[3] = wr.sum()
-    return M,S,NT
-
 
 def FirstHC(H1):
     ### returns array of size populationsize x simulation time of when first HC occurs
@@ -701,21 +624,25 @@ def GetResults_all(H, H1, M, S, N, P, ST):
     return M, S, N, P, ST
 
 
-## with artificially boosted treated subsets
+def GetResults_allSub(H, H1, HS, HA, HW, HC, M, S, N, NT, P, ST):
+    M, S, N = GetResults_longterm(H, H1, M, S, N)
 
-def ShortTermOutcomesSub(H, HS, HA, HW, HC):
+    ## with artificially boosted treated subsets
+    stat = (HS.Statins.sum(axis=1)>0)
+    M, S, NT = GetResults_sub(stat, 4, H, HS, M, S, NT)
+    aht = (HA.Hypertensives.sum(axis=1)>0)
+    M, S, NT = GetResults_sub(aht, 5, H, HA, M, S, NT)
+    sc = (HW.SmokingCessation.sum(axis=1)>0)
+    M, S, NT = GetResults_sub(sc, 6, H, HC, M, S, NT)
+    wr = (HC.WeightReduction.sum(axis=1)>0)
+    M, S, NT = GetResults_sub(wr, 7, H, HW, M, S, NT)
+
+    P = Process(H, H1)
+
     ST = ShortTermOutcomesTrt(H, HS, 'statins')
     AH = ShortTermOutcomesTrt(H, HA, 'aht')
     WM = ShortTermOutcomesTrt(H, HW, 'wr')
     SC = ShortTermOutcomesTrt(H, HC, 'sc')
-    return np.vstack((ST, AH, WM, SC))
+    ST = np.vstack((ST, AH, WM, SC))
 
-def GetResults_allSub(H, H1, HS, HA, HW, HC, M, S, N, NT, P, ST):
-    M, S, N = GetResults_longterm(H, H1, M, S, N)
-    M, S, NT = GetResults_stat(H, HS, M, S, NT)
-    M, S, NT = GetResults_aht(H, HA, M, S, NT)
-    M, S, NT = GetResults_wr(H, HW, M, S, NT)
-    M, S, NT = GetResults_sc(H, HC, M, S, NT)
-    P = Process(H, H1)
-    ST = ShortTermOutcomesSub(H, HS, HA, HW, HC)
     return M, S, N, NT, P, ST

@@ -7,8 +7,8 @@ import getresults as gr
 st = 70
 ps = 25000
 n_cpus = 4
-prefix = "results/unc/"
-randpars = True
+prefix = "results/base_fixage/"
+randpars = False
 
 ## used for running a large population in a set of batches
 ## this program is called by a bash script with the batch number as a command line argument
@@ -22,7 +22,7 @@ if (len(sys.argv) > 2):
 
 nsc = 1 # number of scenarios
 npops = 8 # number of subpopulations
-nouts = 6 # number of outputs (LY, QALY etc)
+nouts = 12 # number of outputs (LY, QALY etc)
 
 M = np.zeros((nsc, npops, nouts))
 S = np.zeros((nsc, npops, nouts))
@@ -41,7 +41,7 @@ def SaveResults(M, S, N, NT, P, ST, nsc, npops, nouts, prefix):
     np.savetxt("%s_short_%s.csv" % (prefix,run), ST.reshape((nsc*16,41)), fmt="%s", delimiter=",") #
     
 ## Without HC
-H = hc.HealthChecksModel(population_size=ps, simulation_time=st, HealthChecks=False, nprocs=n_cpus, randseed=run, randpars=randpars)
+H = hc.HealthChecksModel(population_size=ps, simulation_time=st, HealthChecks=False, nprocs=n_cpus, randseed=run, randpars=randpars, baseage_min=35, baseage_max=40)
 H.Run()
 ## Basic HC model
 
@@ -50,7 +50,7 @@ if (randpars):
 else: UP = None
 
 def initmodels():
-    H1 = hc.HealthChecksModel(population_size=ps, simulation_time=st, HealthChecks=True, nprocs=n_cpus, randseed=run, pars=UP)
+    H1 = hc.HealthChecksModel(population_size=ps, simulation_time=st, HealthChecks=True, nprocs=n_cpus, randseed=run, pars=UP, baseage_min=35, baseage_max=40)
 
     ## Different models to boost size of treated subsets
     ## Increases the precision of the estimates of post-treatment
