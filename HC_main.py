@@ -59,8 +59,8 @@ class HealthChecksModel:
 
         # random seeds
 
-        np.random.seed(0)
         self.randseed = randseed # global random seed
+        np.random.seed(self.randseed)
         rnd.seed(self.randseed)
 
         # load baseline parameters from HSE file
@@ -1320,7 +1320,7 @@ class HealthChecksModel:
         discrepancy = int(nr_ind.sum() - self.population_size)
         direction = np.sign(discrepancy)
 
-        np.random.seed(0)
+        np.random.seed(self.randseed)
 
         rows = nr_ind.shape[0]
         cols = nr_ind.shape[1]
@@ -1411,13 +1411,8 @@ class HealthChecksModel:
 
         select_list = []
 
-        # reset random number generator
-        rnd.seed(0)
-
         # smoker status
         s = self.P['q_smoke_cat'][self.ok_all]
-
-
 
         for i in range(1,(rows*cols+1)):
             # establish which individuals of HSE population fall into this index/census category:
@@ -1432,7 +1427,8 @@ class HealthChecksModel:
             num_j = self.nr_ind[row_nr,col_nr]
 
             # reset random number generator of numpy
-
+            np.random.seed(self.randseed + i)
+            rnd.seed(self.randseed + i)
 
             # now sample from those, add to select_list
             for jj in range(num_j):
@@ -1465,8 +1461,6 @@ class HealthChecksModel:
         # in the end, transform select list into np array
         select = np.array(select_list)
         self.select = select.copy()
-        # reset seed for numpy random
-        np.random.seed()
 
 
         # fixed factors
@@ -1609,8 +1603,6 @@ class HealthChecksModel:
         '''Based on Stroke and IHD prevalences and age weight, establish which proportion of the initial population will already have a CVD event before the simulation starts
         assign these to the individuals with highest QRisk for these age groups'''
 
-        np.random.seed(self.randseed)
-        rnd.seed(self.randseed)
 
         self.stroke_init = np.zeros(self.population_size,dtype=bool)
         self.IHD_init = np.zeros(self.population_size,dtype=bool)
@@ -1618,6 +1610,8 @@ class HealthChecksModel:
         k = np.arange(self.population_size)
 
         for i in range(int(self.age[:,0].min()), int(self.age[:,0].max() + 1)):
+            np.random.seed(self.randseed + i)
+            rnd.seed(self.randseed + i)
             a_male = (self.age[:,0] == i) * (self.gender == 1)
             a_female = (self.age[:,0] == i) * (self.gender == 0)
 
@@ -3354,11 +3348,11 @@ class HealthChecksModel:
             
             # define if random seed is globally applied at beginning of each timestep:
             if self.RandomSeed['Start_Of_Each_Timestep'] == True:
-                np.random.seed(i+10101)
-                rnd.seed(self.randseed)
+                np.random.seed(self.randseed + i+10101)
+                rnd.seed(self.randseed + i+10101)
             else:
                 np.random.seed()
-                rnd.seed(self.randseed)
+                rnd.seed(self.randseed + i+10101)
 
             if self.verbose == True:
                 print('\n-------------------------\n** simulating time t=%d (%s)...' % (i,h[self.Health_Checks]))
@@ -3675,14 +3669,14 @@ class HealthChecksModel:
 
 
 
-            # reset back seeds to timestep setting
+            # reset back seeds to timestep setting (?why?) 
 
             if self.RandomSeed['Start_Of_Each_Timestep'] == True:
-                np.random.seed(i+10101)
-                rnd.seed(self.randseed)
+                np.random.seed(self.randseed + i+101010)
+                rnd.seed(self.randseed + i+101010)
             else:
                 np.random.seed()
-                rnd.seed(self.randseed)
+                rnd.seed(self.randseed + i+101010)
 
 
             #########################################
@@ -3692,7 +3686,6 @@ class HealthChecksModel:
             if self.Health_Checks == True:
                 
                 self.RelativeUptake(i) # ORs for attending given eligible at current time point
-                rnd.seed(self.randseed)
 
                 # -----------------------------------------------------------------
                 # check Health Checks eligibility
@@ -3783,14 +3776,14 @@ class HealthChecksModel:
                 attending = r < att_prob
                 self.Attending[attending, i] = 1
 
-#                self.pup = pup
-#                self.att_prob = att_prob
-
 
                 #############################
                 # TREATMENT
                 #############################
-
+                # Fix seeds to reduce MC error, but at different values to those used before determining eligibility/attendance.
+                # since the randomness in these two steps should be independent 
+                np.random.seed(self.randseed + i+20202) 
+                rnd.seed(self.randseed + i+20202)
 
                 # (1) Statins
                 #np.random.seed(self.randseed)
@@ -3819,6 +3812,8 @@ class HealthChecksModel:
 
 
 
+                np.random.seed(self.randseed + i+30303) 
+                rnd.seed(self.randseed + i+30303)
 
                 # (2) Weight Reduction
 
@@ -3835,6 +3830,8 @@ class HealthChecksModel:
                 self.prev_wr_time[wred_comp] = i # store the last time they started weight reduction, to implement weight regain
                 self.WeightReduction[wred_comp,i] = 1
 
+                np.random.seed(self.randseed + i+40404) 
+                rnd.seed(self.randseed + i+40404)
 
                 # (3) Smoking Cessation
 
@@ -3864,6 +3861,9 @@ class HealthChecksModel:
                         #self.smoke2[quitting] = 1
 
 
+
+                np.random.seed(self.randseed + i+50505) 
+                rnd.seed(self.randseed + i+50505)
 
                 # (4) Anti-Hypertensives - given to people
 
@@ -3931,7 +3931,7 @@ class HealthChecksModel:
             #################################################
 
             if self.RandomSeed['Disease_Incidences'] == True:
-                np.random.seed(self.randseed+i)
+                np.random.seed(self.randseed+i+303)
             else:
                 np.random.seed()
 
@@ -3996,6 +3996,10 @@ class HealthChecksModel:
             self.compm7[diagnosed_CVD_cases,i:] = 1
 
 
+            if self.RandomSeed['Disease_Incidences'] == True:
+                np.random.seed(self.randseed+i+404)
+            else:
+                np.random.seed()
 
             # DEMENTIA
             # compute CAIDE score
@@ -4006,10 +4010,10 @@ class HealthChecksModel:
             dem_risk = rel_risk*CAIDE_risk
             r = np.random.random(self.population_size)
             with np.errstate(invalid='ignore'):
-                dem_event = r<dem_risk
+                dem_event = (r<dem_risk) * (self.alive[:,i]==1)
 
             self.Dementia[dem_event,i:] = 1
-            self.DementiaEvents[dem_event * (self.alive[:,i]==1),i] = 1
+            self.DementiaEvents[dem_event,i] = 1
 
 
             ###################################################
@@ -4109,7 +4113,7 @@ class HealthChecksModel:
             if self.RandomSeed['Mortality_Other'] == False:
                 np.random.seed()
             else:
-                np.random.seed(i+101)
+                np.random.seed(self.randseed+i+101)
 
 
             other_male = self.LT_othercauses_smoothed[age,1]
@@ -4128,7 +4132,7 @@ class HealthChecksModel:
             if self.RandomSeed['Mortality_Diseases'] == False:
                 np.random.seed()
             else:
-                np.random.seed(i+102)
+                np.random.seed(self.randseed+i+102)
 
 
             # mortality by Stroke
