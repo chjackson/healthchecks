@@ -1,50 +1,83 @@
 import numpy as np
 
-## TODO do we want different LY and QALY by gender?
-
-## TODO can we do much more of this in Python, leaving R for the formatting
-## Combine all outcomes into one table 
-## M combined with percentages from N combined with percs from process outcomes,
-## combined with short term outcomes? 
-
 def GetResults_sub(sub, ind, H, H1, M, S, NT):
-    M[ind,0] = (H.QALY[sub]).mean()
-    M[ind,1] = (H1.QALY[sub]).mean()
-    M[ind,2] = (H1.QALY[sub] - H.QALY[sub]).mean()
-    M[ind,3] = (H.LY[sub]).mean()
-    M[ind,4] = (H1.LY[sub]).mean()
-    M[ind,5] = (H1.LY[sub] - H.LY[sub]).mean()
-    S[ind,0] = (H.QALY[sub]).std()
-    S[ind,1] = (H1.QALY[sub]).std()
-    S[ind,2] = (H1.QALY[sub] - H.QALY[sub]).std()
-    S[ind,3] = (H.LY[sub]).std()
-    S[ind,4] = (H1.LY[sub]).std()
-    S[ind,5] = (H1.LY[sub] - H.LY[sub]).std()
+    IQALY = H1.QALY[sub] - H.QALY[sub]
+    ILY = H1.LY[sub] - H.LY[sub]
+   
+    days = 365.25 
+    M[ind,0] = (H.QALY[sub]).mean() * days
+    M[ind,1] = (H1.QALY[sub]).mean() * days 
+    M[ind,2] = IQALY.mean() * days 
+        
+    M[ind,3] = (H.LY[sub]).mean() * days 
+    M[ind,4] = (H1.LY[sub]).mean() * days 
+    M[ind,5] = ILY.mean() * days 
+
+    S[ind,0] = (H.QALY[sub]).std() * days 
+    S[ind,1] = (H1.QALY[sub]).std() * days 
+    S[ind,2] = IQALY.std() * days 
+    S[ind,3] = (H.LY[sub]).std() * days 
+    S[ind,4] = (H1.LY[sub]).std() * days 
+    S[ind,5] = ILY.std() * days 
+
+    total_hc = H1.Attending.sum()
+    M[ind,6] = IQALY.sum() / total_hc * days 
+    M[ind,7] = ILY.sum() / total_hc * days 
+    S[ind,6] = np.sqrt( ((IQALY - M[ind,6])*(IQALY - M[ind,6])).sum() / total_hc ) * days 
+    S[ind,7] = np.sqrt( ((ILY - M[ind,7])*(ILY - M[ind,7])).sum() / total_hc ) * days 
 
     H.dead = np.logical_not(H.alive)
     H1.dead = np.logical_not(H1.alive)    
-    H.CVDordead = np.logical_or(H.CVD, H.dead)
-    H1.CVDordead = np.logical_or(H1.CVD, H1.dead)
-    CVDdeath = np.logical_or(H.CauseOfDeath == 'IHD', H.CauseOfDeath == 'Stroke')
-    H.deadCVD = H.dead * np.resize(CVDdeath, np.flipud(H.dead.shape)).T # broadcast vector to match array 
-    CVDdeath = np.logical_or(H1.CauseOfDeath == 'IHD', H1.CauseOfDeath == 'Stroke')
-    H1.deadCVD = H1.dead * np.resize(CVDdeath, np.flipud(H1.dead.shape)).T
-    
+#    H.CVDordead = np.logical_or(H.CVD, H.dead)
+#    H1.CVDordead = np.logical_or(H1.CVD, H1.dead)
+#    CVDdeath = np.logical_or(H.CauseOfDeath == 'IHD', H.CauseOfDeath == 'Stroke')
+#    H.deadCVD = H.dead * np.resize(CVDdeath, np.flipud(H.dead.shape)).T # broadcast vector to match array 
+#    CVDdeath = np.logical_or(H1.CauseOfDeath == 'IHD', H1.CauseOfDeath == 'Stroke')
+#    H1.deadCVD = H1.dead * np.resize(CVDdeath, np.flipud(H1.dead.shape)).T
+
+    k = 8
     ## Counts of events by specific ages 
-    outcomes = ['dead', 'CVD', 'deadCVD', 'Dementia', 'LungCancer', 'diabetes']
-    ages = [65, 70]
+    outcomes = ['IHD', 'Stroke', 'Dementia', 'LungCancer']
+    ages = [80]
     for i in ages:
         for j in outcomes:
             exec('D = (H.%s * (H.age == %s)).sum(axis=1)' % (j, i))
             exec('D1 = (H1.%s * (H1.age == %s)).sum(axis=1)' % (j, i))
-            k = 6 + ages.index(i)*3*len(outcomes) + 3*outcomes.index(j)
-            print i, j, k
             M[ind,k] = (D[sub]).mean()
             M[ind,k+1] = (D1[sub]).mean()
             M[ind,k+2] = M[ind,k] - M[ind,k+1]
             S[ind,k] = (D[sub]).std()
             S[ind,k+1] = (D1[sub]).std()
             S[ind,k+2] = np.sqrt(pow(S[ind,k],2) + pow(S[ind,k+1], 2))
+            k = k+3
+
+    ## event counts by end of the model, i.e. age 99. Everyone dies by age 100.
+    prevage = np.column_stack((H.age[:,0]-1, H.age[:,:-1]))
+    first99 = (H.age == 99) * (prevage == 98) # get around ages after 99 being labelled 99, don't understand why this was done
+    for j in outcomes:
+        exec('D = (H.%s * first99).sum(axis=1)' % (j))
+        exec('D1 = (H1.%s * first99).sum(axis=1)' % (j))
+        M[ind,k] = (D[sub]).mean()
+        M[ind,k+1] = (D1[sub]).mean()
+        M[ind,k+2] = M[ind,k] - M[ind,k+1]
+        S[ind,k] = (D[sub]).std()
+        S[ind,k+1] = (D1[sub]).std()
+        S[ind,k+2] = np.sqrt(pow(S[ind,k],2) + pow(S[ind,k+1], 2))
+        k = k+3
+
+    outcomes = ['dead']
+    ages = [75, 80]
+    for i in ages:
+        for j in outcomes:
+            exec('D = (H.%s * (H.age == %s)).sum(axis=1)' % (j, i))
+            exec('D1 = (H1.%s * (H1.age == %s)).sum(axis=1)' % (j, i))
+            M[ind,k] = (D[sub]).mean()
+            M[ind,k+1] = (D1[sub]).mean()
+            M[ind,k+2] = M[ind,k] - M[ind,k+1]
+            S[ind,k] = (D[sub]).std()
+            S[ind,k+1] = (D1[sub]).std()
+            S[ind,k+2] = np.sqrt(pow(S[ind,k],2) + pow(S[ind,k+1], 2))
+            k = k+3
         
     if (ind>=4):
         NT[ind-4] = sub.sum()
@@ -59,28 +92,96 @@ def GetResults_longterm(H, H1, M, S, N):
     n_att_once = (att.sum(axis=1)>0)
     t_offered = (H1.OfferedTreatment.sum(axis=1)>0)
 
+    ## Eligible for treatment at any time, using either Q>=20 or Q>=10
+    el_trt20 = ((H1.eligible * (H1.QRisk >= 20)).sum(axis=1) > 0)   +   ((H1.eligible * (H1.q_sbp > 140)).sum(axis=1) > 0) +   ((H1.eligible * (H1.bmi >= 30)).sum(axis=1) > 0) +  ((H1.eligible * (H1.q_smoke_cat>1)).sum(axis=1) > 0) > 0 
+
+    el_trt10 = ((H1.eligible * (H1.QRisk >= 10)).sum(axis=1) > 0)   +   ((H1.eligible * (H1.q_sbp > 140)).sum(axis=1) > 0) +   ((H1.eligible * (H1.bmi >= 30)).sum(axis=1) > 0) +  ((H1.eligible * (H1.q_smoke_cat>1)).sum(axis=1) > 0) > 0 
+
+    ## Most deprived quintile 
+    dep = (H1.SES == 5)
+        
     stat = (H1.Statins.sum(axis=1)>0)
     aht = (H1.Hypertensives.sum(axis=1)>0)
     sc = (H1.SmokingCessation.sum(axis=1)>0)
     wr = (H1.WeightReduction.sum(axis=1)>0)
     total_hc = att.sum()
 
-    NT = np.zeros(4, dtype=int) # unused in this function
+    NT = np.zeros(5, dtype=int) # unused in this function
     M, S, NT = GetResults_sub(allpop,     0, H, H1, M, S, NT)
     M, S, NT = GetResults_sub(el_tot,     1, H, H1, M, S, NT)
     M, S, NT = GetResults_sub(n_att_once, 2, H, H1, M, S, NT)
     M, S, NT = GetResults_sub(t_offered,  3, H, H1, M, S, NT)
+    M, S, NT = GetResults_sub(dep,        4, H, H1, M, S, NT)
 
     N[1] = el_tot.sum()
     N[2] = n_att_once.sum()
     N[3] = t_offered.sum()
-    N[4] = stat.sum()
-    N[5] = aht.sum()
-    N[6] = sc.sum()
-    N[7] = wr.sum()
-    N[8] = total_hc
+    N[4] = dep.sum()
+    N[5] = el_trt20.sum()
+    N[6] = el_trt10.sum()
+    N[7] = stat.sum()
+    N[8] = aht.sum()
+    N[9] = sc.sum()
+    N[10] = wr.sum()
+    N[11] = total_hc
 
     return M,S,N
+
+
+
+def BaselineChars(H, H1):
+    base_all = [
+        np.bincount(H.gender).tolist(),  # 0 female 1 male 
+        np.bincount(H.eth).tolist(),
+        np.bincount(H.SES).tolist(),
+        np.bincount(H.educ).tolist(),
+        [H.age[:,0].mean(), np.percentile(H1.age[:,0], 25), np.percentile(H1.age[:,0], 75)],
+        [H.QRisk[:,0].mean(), np.percentile(H1.QRisk[:,0], 25), np.percentile(H1.QRisk[:,0], 75)],
+        [(H.QRisk[:,0]>=20).sum()],
+        [np.logical_and(H.QRisk[:,0]>=10, H.QRisk[:,0]<20).sum()],
+        [H.q_sbp[:,0].mean(), np.percentile(H1.q_sbp[:,0], 25), np.percentile(H1.q_sbp[:,0], 75)],
+        [H.dia[:,0].mean(), np.percentile(H1.dia[:,0], 25), np.percentile(H1.dia[:,0], 75)],
+        [np.logical_or(H.q_sbp[:,0]>=140, H.dia[:,0]>=90).sum()],
+        [H.q_b_treatedhyp[:,0].sum()],
+        [H.chol[:,0].mean(), np.percentile(H1.chol[:,0], 25), np.percentile(H1.chol[:,0], 75)],
+        [H.q_rati[:,0].mean(),np.percentile(H1.q_rati[:,0], 25), np.percentile(H1.q_rati[:,0], 75)],
+        [H.bmi[:,0].mean(),np.percentile(H1.bmi[:,0], 25), np.percentile(H1.bmi[:,0], 75)],
+        [(H.bmi[:,0]>=30).sum()],
+        [H.glyhb[:,0].mean(), np.percentile(H1.glyhb[:,0], 25), np.percentile(H1.glyhb[:,0], 75)],
+        [(H.glyhb[:,0]>=6.5).sum()],
+        [H.diabetes[:,0].sum()],
+        np.bincount(H.q_smoke_cat[:,0]).tolist()
+    ]
+
+    ## People who go on to attend HC, still at baseline
+    att = H1.Attending.sum(axis=1)>0
+
+    base_att = [
+        np.bincount(H1.gender[att]).tolist(),  # 0 female 1 male 
+        np.bincount(H1.eth[att]).tolist(),
+        np.bincount(H1.SES[att]).tolist(),
+        np.bincount(H1.educ[att]).tolist(),
+        [H1.age[att,0].mean(), np.percentile(H1.age[att,0], 25), np.percentile(H1.age[att,0], 75)],
+        [H1.QRisk[att,0].mean(), np.percentile(H1.QRisk[att,0], 25), np.percentile(H1.QRisk[att,0], 75)],
+        [(H1.QRisk[att,0]>=20).sum()],
+        [np.logical_and(H1.QRisk[att,0]>=10, H1.QRisk[att,0]<20).sum()],
+        [H1.q_sbp[att,0].mean(), np.percentile(H1.q_sbp[att,0], 25), np.percentile(H1.q_sbp[att,0], 75)],
+        [H1.dia[att,0].mean(), np.percentile(H1.dia[att,0], 25), np.percentile(H1.dia[att,0], 75)],
+        [np.logical_or(H1.q_sbp[att,0]>=140, H1.dia[att,0]>=90).sum()],
+        [H1.q_b_treatedhyp[att,0].sum()],
+        [H1.chol[att,0].mean(), np.percentile(H1.chol[att,0], 25), np.percentile(H1.chol[att,0], 75)],
+        [H1.q_rati[att,0].mean(), np.percentile(H1.q_rati[att,0], 25), np.percentile(H1.q_rati[att,0], 75)],
+        [H1.bmi[att,0].mean(), np.percentile(H1.bmi[att,0], 25), np.percentile(H1.bmi[att,0], 75)],
+        [(H1.bmi[att,0]>=30).sum()],
+        [H1.glyhb[att,0].mean(), np.percentile(H1.glyhb[att,0], 25), np.percentile(H1.glyhb[att,0], 75)],
+        [(H1.glyhb[:,0]>=6.5).sum()],
+        [H1.diabetes[att,0].sum()],
+        np.bincount(H1.q_smoke_cat[att,0]).tolist()
+    ]
+
+    flatten = lambda l: [item for sublist in l for item in sublist]
+    return np.column_stack((flatten(base_all), flatten(base_att)))
+    
 
 def FirstHC(H1):
     ### returns array of size populationsize x simulation time of when first HC occurs
@@ -615,6 +716,11 @@ def ShortTermOutcomes(H, H1):
     WM = ShortTermOutcomesTrt(H, H1, 'wr')
     SC = ShortTermOutcomesTrt(H, H1, 'sc')
     return np.vstack((ST, AH, WM, SC))
+
+
+def GetResults_paper(H, H1, M, S, N):
+    M, S, N = GetResults_longterm(H, H1, M, S, N)
+    return M, S, N
 
 
 def GetResults_all(H, H1, M, S, N, P, ST):
