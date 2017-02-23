@@ -22,8 +22,8 @@ P = {} # parameter dictionary
 # global HC parameters
 P['HC_offered'] = 0.197 # offered HC among eligible in 2014/15
 P['HC_takeup'] = 0.488 # of those offered, how many follow up HC
-P['HC_takeup_prev_att'] = 0.488 #  (same, for those attending at their previous invitation or those who attended despite not being eligible)
-P['HC_takeup_not_prev_att'] = 0.488 # (same, for those not attending at their previous invitation)
+P['HC_takeup_rr_prev_att'] = 1.0 #  (RR for those attending at their previous invitation or those who attended despite not being eligible)
+P['HC_takeup_rr_not_prev_att'] = 1.0 # (RR for those not attending at their previous invitation)
 P['HC_offer_prev_att'] = 0.197
 P['HC_offer_not_prev_att'] = 0.197
 P['HC_age_limit'] = [40, 74] # min / max age for HC eligibility
@@ -36,6 +36,13 @@ P['ethnicity'] = np.array([1, 1.0288336, 0.9912068,  0.8741651])
 P['SES'] = np.array([1, 0.9742240, 0.9871075, 1.0066707, 1.2491194])
 P['smoker'] = np.array([1, 0.7436315])
 P['QR'] = np.array([0.6427019, 1, 1.5406470, 1.8957039, 2.3402212])
+
+#############################################################
+# HC uptake extra relative rates (not odds ratios) in particular groups
+# to be changed in scenarios 
+P['ses5_extra_uptake'] = 1 
+P['sm_extra_uptake'] = 1 
+P['q5_extra_uptake'] = 1 
 
 #############################################################
 # HC uptake log odds ratios and SEs on the log scale

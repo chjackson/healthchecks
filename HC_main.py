@@ -251,10 +251,10 @@ class HealthChecksModel:
         UP['up_physically_active'] = self.up_physically_active
 
         ## CJ NEW STUFF
-        self.up_HC_takeup_prev_att = self.parms['HC_takeup_prev_att']
-        UP['up_HC_takeup_prev_att'] = self.up_HC_takeup_prev_att
-        self.up_HC_takeup_not_prev_att = self.parms['HC_takeup_not_prev_att']
-        UP['up_HC_takeup_not_prev_att'] = self.up_HC_takeup_not_prev_att
+        self.up_HC_takeup_rr_prev_att = self.parms['HC_takeup_rr_prev_att']
+        UP['up_HC_takeup_rr_prev_att'] = self.up_HC_takeup_rr_prev_att
+        self.up_HC_takeup_rr_not_prev_att = self.parms['HC_takeup_rr_not_prev_att']
+        UP['up_HC_takeup_rr_not_prev_att'] = self.up_HC_takeup_rr_not_prev_att
         self.up_HC_offer_prev_att = self.parms['HC_offer_prev_att']
         UP['up_HC_offer_prev_att'] = self.up_HC_offer_prev_att
         self.up_HC_offer_not_prev_att = self.parms['HC_offer_not_prev_att']
@@ -266,6 +266,13 @@ class HealthChecksModel:
         self.up_Weight_eff = self.parms['Weight_eff']
         UP['up_Weight_eff'] = self.up_Weight_eff
 
+        self.ses5_extra_uptake = self.parms['ses5_extra_uptake']
+        UP['ses5_extra_uptake'] = self.parms['ses5_extra_uptake']
+        self.sm_extra_uptake = self.parms['sm_extra_uptake']
+        UP['sm_extra_uptake'] = self.parms['sm_extra_uptake']
+        self.q5_extra_uptake = self.parms['q5_extra_uptake']
+        UP['q5_extra_uptake'] = self.parms['q5_extra_uptake']
+        
         # make list of all uncertain parameters global
         self.UP = copy.deepcopy(UP)
         # save set of default parameters in copy list, to compare against if parameters were changed
@@ -366,8 +373,8 @@ class HealthChecksModel:
         UP['up_HC_age_limit'] = self.up_HC_age_limit
 
         # CJ new
-        UP['up_HC_takeup_prev_att'] = self.up_HC_takeup_prev_att
-        UP['up_HC_takeup_not_prev_att'] = self.up_HC_takeup_not_prev_att
+        UP['up_HC_takeup_rr_prev_att'] = self.up_HC_takeup_rr_prev_att
+        UP['up_HC_takeup_rr_not_prev_att'] = self.up_HC_takeup_rr_not_prev_att
         UP['up_HC_offer_prev_att'] = self.up_HC_offer_prev_att
         UP['up_HC_offer_not_prev_att'] = self.up_HC_offer_not_prev_att
         UP['up_Statins_eff_extra_male'] = self.up_Statins_eff_extra_male
@@ -1250,12 +1257,15 @@ class HealthChecksModel:
         self.eligible = np.zeros((self.population_size, self.simulation_time),dtype=bool)
         self.poff = np.zeros((self.population_size, self.simulation_time),dtype=bool)
         # People offered HC, or attended anyway despite not being eligible
-        self.OfferedHC = np.zeros((self.population_size, self.simulation_time),dtype=bool)
+
+        self.OfferedHC = np.zeros((self.population_size, self.simulation_time))
         # time at which each individual was last offered a HC.
         # -1 if never offered
         self.prev_offer_time = np.zeros((self.population_size), dtype=int) - 1
-        # Relative uptake rates
+        # Relative uptake rates in base case 
         self.RelTurnup = np.zeros((self.population_size, self.simulation_time),dtype=bool)
+        # Additional relative uptake rates applied in scenario 
+        self.RelTurnupScen = np.zeros((self.population_size, self.simulation_time),dtype=bool)
         # People attending Health Checks
         self.Attending = np.zeros((self.population_size, self.simulation_time),dtype=bool)
         self.OfferedTreatment = np.zeros((self.population_size, self.simulation_time),dtype=bool)
@@ -2773,7 +2783,7 @@ class HealthChecksModel:
 
         # evaluate uptake factors
         # (1) age groups
-        p_age = np.zeros(self.population_size)
+        p_age = np.zeros(self.population_size) #+ 1
 
         p40 = np.where((self.age[:,t] >= 40) * (self.age[:,t] <50))[0]
         p_age[p40] = self.up_age_vec[0]
@@ -2788,7 +2798,7 @@ class HealthChecksModel:
         p_age[p70] = self.up_age_vec[3]
 
         # (2) gender
-        p_gender = np.zeros(self.population_size)
+        p_gender = np.zeros(self.population_size) #+ 1
 
         p_m = np.where(self.gender == 1)[0]
         p_gender[p_m] = self.up_gender_vec[0]
@@ -2797,7 +2807,7 @@ class HealthChecksModel:
         p_gender[p_f] = self.up_gender_vec[1]
 
         # (3) ethnicity
-        p_eth = np.zeros(self.population_size)
+        p_eth = np.zeros(self.population_size) #+ 1
 
         p_e1 = np.where(self.eth == 1)[0]
         p_eth[p_e1] = self.up_eth_vec[0]
@@ -2812,7 +2822,7 @@ class HealthChecksModel:
         p_eth[p_e67] = self.up_eth_vec[2]
 
         # (4) Qrisk
-        p_qrisk = np.zeros(self.population_size)
+        p_qrisk = np.zeros(self.population_size) #+ 1 
         Q = self.CalculateQrisk(t)
 
         p_q1 = np.where(Q<5)[0]
@@ -2831,7 +2841,7 @@ class HealthChecksModel:
         p_qrisk[p_q5] = self.up_QRisk_vec[4]
 
         # (5) SES
-        p_ses = np.zeros(self.population_size)
+        p_ses = np.zeros(self.population_size) #+ 1
 
         p_s1 = np.where(self.SES == 1)[0]
         p_ses[p_s1] = self.up_SES_vec[0]
@@ -2849,7 +2859,7 @@ class HealthChecksModel:
         p_ses[p_s5] = self.up_SES_vec[4]
 
         # (6) smoking
-        p_smoking = np.zeros(self.population_size)
+        p_smoking = np.zeros(self.population_size) #+ 1
 
         p_nonsm = np.where(self.q_smoke_cat[:,t] <= 1)[0]
         p_smoking[p_nonsm] = self.up_smoker_vec[0]
@@ -2861,6 +2871,12 @@ class HealthChecksModel:
 
         self.RelTurnup =   p_age * p_gender * p_eth * p_qrisk * p_ses * p_smoking
 
+        # extra relative turnup rates (not odds ratios) applied in additional scenarios 
+        self.RelTurnupScen = np.zeros(self.population_size) + 1
+        self.RelTurnupScen[p_s5] = self.ses5_extra_uptake
+        self.RelTurnupScen[p_sm] = self.sm_extra_uptake
+        self.RelTurnupScen[p_q5] = self.q5_extra_uptake
+        
         # delete internal arrays
         del p_age,p_gender,p_eth,p_smoking,p_nonsm,p_sm,p_ses,p_qrisk,p_s1,p_s2,p_s3,p_s4,p_s5
         del p_q1,p_q2,p_q3,p_q4,p_q5,p_m,p_f
@@ -3716,12 +3732,14 @@ class HealthChecksModel:
                 # include individuals on CVD and diabetes registers, but not on bp registers
                 self.eligible[:, i] = self.register_filter[:,i] * (self.within_age[:, i] > 0) * (self.alive[:, i] == 1)
 
-
                 # some people get a HC despite being non-eligible
                 not_eligible = np.where((self.eligible[:,i]==0) * (self.alive[:, i] == 1))[0]
                 n_eligible_other = int(not_eligible.size * self.up_HC_takeup_noneligible)
                 self.eligible_other_idx = rnd.sample(not_eligible,n_eligible_other)
-                self.eligible[self.eligible_other_idx,i] = 1
+
+                elig_or_attend_anyway = self.eligible[:,i].copy()
+                elig_or_attend_anyway[self.eligible_other_idx] = 1
+
                 # determine how many are attending it based on the switching
                 # probabilities
 
@@ -3757,14 +3775,16 @@ class HealthChecksModel:
                 poff[prev_declined==1] = self.up_HC_offer_not_prev_att
 
                 self.poff[:,i] = poff 
-                offered = r < (self.alive[:,i] * self.eligible[:, i] * poff)
+                offered = r < (self.alive[:,i] * elig_or_attend_anyway * poff)
                 self.OfferedHC[offered, i] = 1
                 ## update last offer time to include people offered HC this time
                 self.prev_offer_time[self.OfferedHC[:,i] == 1] = i
 
                 pup = np.zeros((self.population_size)) + self.up_HC_takeup  # Baseline prob of attendance if offered
-                pup[prev_accepted==1] = self.up_HC_takeup_prev_att
-                pup[prev_declined==1] = self.up_HC_takeup_not_prev_att
+                pup[prev_accepted==1] *= self.up_HC_takeup_rr_prev_att
+                pup[prev_declined==1] *= self.up_HC_takeup_rr_not_prev_att
+                targeted_uptake = self.RelTurnupScen.copy() # Extra RRs for targeted subgroups in scenarios.
+                pup *= targeted_uptake
 
                 pup = poff * pup
                 or_uptake = self.RelTurnup.copy() # Apply ORs for attending given eligible
@@ -3772,10 +3792,10 @@ class HealthChecksModel:
                 pup = odds / (1 + odds)
                 pup *= rel_uptake
 
-                att_prob = self.alive[:,i] * self.eligible[:, i] * pup
+                att_prob = self.alive[:,i] * elig_or_attend_anyway * pup
+
                 attending = r < att_prob
                 self.Attending[attending, i] = 1
-
 
                 #############################
                 # TREATMENT

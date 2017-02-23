@@ -4,7 +4,7 @@
 
 start=`date +%s`
 
-nruns=5
+nruns=40
 
 for i in `seq 1 $nruns`;
 do
