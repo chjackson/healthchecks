@@ -6,10 +6,10 @@ start=`date +%s`
 
 nruns=40
 
-for i in `seq 1 $nruns`;
+for i in `seq 5 $nruns`;
 do
     echo "STARTING RUN $i..."
-    python scenariosub_fixage.py $i
+    python scenarios.py $i
 done
 
 end=`date +%s`
