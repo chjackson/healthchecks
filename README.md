@@ -11,7 +11,7 @@
 
 ## Simulating a population
 
-* Main model file: `HC_main.py`
+* Main model file: [HC_main.py](HC_main.py)
 
 ```python
 import HC_main as hc
@@ -34,15 +34,15 @@ Shell scripts are therefore used to simulate larger populations in batches.
 
 ###  Base case only 
 
-* Shell script [basecase.sh](basecase.sh), which calls the Python script `basecase.py`.
+* Shell script [basecase.sh](basecase.sh), which calls the Python script [basecase.py](basecase.py).
 
 ###  All scenarios
 
-* Shell script `scenarios.sh`, which calls the Python script `scenarios.py`.
+* Shell script [scenarios.sh](scenarios.sh), which calls the Python script [scenarios.py](scenarios.py).
 
 ###  All scenarios, with statistical uncertainty
 
-* Shell script `unc.sh`, which calls the Python script `scenarios_unc.py`.  Requires the SLURM high performance computing facility.
+* Shell script [unc.sh](unc.sh), which calls the Python script [scenarios_unc.py](scenarios_unc.py).  Requires the SLURM high performance computing facility.
 
 ###  Key constants 
 
@@ -52,8 +52,8 @@ Shell scripts are therefore used to simulate larger populations in batches.
 
 ###  Formatting results 
 
-* The Python library `getresults.py` specifies which aggregate results are extracted from the simulated population. 
+* The Python library [getresults.py](getresults.py) specifies which aggregate results are extracted from the simulated population. 
 
 * The Python scripts output aggregate results from the simulated population in text files.
 
-* The R code in the file `tables.r` formats the information in these output files to produce the tables in the paper.
+* The R code in the file [tables.r](tables.r) formats the information in these output files to produce the tables in the paper.
