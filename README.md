@@ -19,7 +19,8 @@ H = hc.HealthChecksModel(population_size=250000,
                          simulation_time=60, # number of years to simulate
                          HealthChecks=False,
 						 randseed=1,         # random number seed 
-                         nprocs=n_cpus # number of CPU cores for parallelisation
+						 randpars=False,     # draw random parameter values?
+                         nprocs=4  # number of CPU cores for parallelisation
 						 )
 H.Run()
 ```
@@ -52,7 +53,7 @@ Shell scripts are therefore used to simulate larger populations in batches.
 * `ps` in the Python scripts gives the number of people in each batch.
 * The total population size is then `nruns*ps`.
 * `run` in the Python scripts is the batch number of the current run.  This is passed through from the shell script as a command line argument to the Python script, and is used as the random seed to simulate the current batch. 
-* `randpars` (`True` or `False`) specifies whether random parameter values are drawn for each batch.  Used to quantify statistical uncertainty. 
+* `randpars` (`True` or `False`), a named argument to `HealthChecksModel()`, specifies whether random parameter values are drawn from their uncertainty distributions for each batch.  Used to quantify statistical uncertainty.  Defaults to `False`. 
 
 ###  Formatting results 
 
