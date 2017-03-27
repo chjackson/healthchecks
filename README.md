@@ -17,7 +17,10 @@
 import HC_main as hc
 simulation_time = 60 # number of years to simulate
 n_cpus = 8           # number of CPU cores for parallelisation
-H = hc.HealthChecksModel(population_size=250000, simulation_time=simulation_time, HealthChecks=False, nprocs=n_cpus)
+H = hc.HealthChecksModel(population_size=250000,
+                         simulation_time=simulation_time,
+						 HealthChecks=False,
+						 nprocs=n_cpus)
 H.Run()
 ```
 
