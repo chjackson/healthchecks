@@ -1,39 +1,7 @@
 import numpy as np
-
-def FirstHC(H1):
-    ### returns time when first HC occurs for each person 
-    FHC = np.zeros((H1.population_size), dtype=np.int) - 1
-    for i in range(H1.population_size):
-        try:
-            FHC[i] = np.where(H1.Attending[i]==1)[0][0]
-        except:
-            pass # no attendance for this individual
-    return FHC
-
-
-def PostHCOuts(H, H1):
-    att = H1.Attending.sum(axis=1)>0
-    HC1 = FirstHC(H1)[att]
-    qcon =  H.QRisk[att, HC1 + 10] - H.QRisk[att, HC1]   # change in qrisk over 10 years, neg good, will be pos as increases with age 
-    qhc =   H1.QRisk[att, HC1 + 10] - H1.QRisk[att, HC1]
-    qdiff = qhc - qcon                # lower change under hc, negative is good 
-    scon =  H.q_sbp[att, HC1 + 10] - H.q_sbp[att, HC1]
-    shc =   H1.q_sbp[att, HC1 + 10] - H1.q_sbp[att, HC1]
-    sdiff = shc - scon 
-    dcon =  H.dia[att, HC1 + 10] - H.dia[att, HC1]
-    dhc =   H1.dia[att, HC1 + 10] - H1.dia[att, HC1]
-    ddiff = dhc - dcon 
-    ccon =  H.chol[att, HC1 + 10] - H.chol[att, HC1]
-    chc =   H1.chol[att, HC1 + 10] - H1.chol[att, HC1]
-    cdiff = chc - ccon 
-
-    posthcmeans = [ qdiff.mean(), sdiff.mean(), ddiff.mean(), cdiff.mean() ] 
-    posthcsds = [ qdiff.std(), sdiff.std(), ddiff.std(), cdiff.std() ] 
     
-    return np.column_stack((posthcmeans, posthcsds))
-
-    
-def GetResults_sub(sub, ind, H, H1, M, S, NT):
+def GetResults_sub(sub, ind, H, H1, H0, M, S, NT):
+    '''Get QALY and events results for a particular subset of the population'''
     IQALY = H1.QALY[sub] - H.QALY[sub]
     ILY = H1.LY[sub] - H.LY[sub]
    
@@ -52,13 +20,33 @@ def GetResults_sub(sub, ind, H, H1, M, S, NT):
     S[ind,3] = (H.LY[sub]).std() * days 
     S[ind,4] = (H1.LY[sub]).std() * days 
     S[ind,5] = ILY.std() * days 
-
-    total_hc = H1.Attending.sum()
+    
     ## QALY and LY gains per health check
-    M[ind,6] = IQALY.sum() / total_hc * days 
-    M[ind,7] = ILY.sum() / total_hc * days 
-    S[ind,6] = np.sqrt( ((IQALY - M[ind,6])*(IQALY - M[ind,6])).sum() / total_hc ) * days 
-    S[ind,7] = np.sqrt( ((ILY - M[ind,7])*(ILY - M[ind,7])).sum() / total_hc ) * days 
+    nhcbase = H.Attending.sum()
+    nhc = H1.Attending.sum()
+    IQALYscen_no = H1.QALY[sub] - H0.QALY[sub] # scenario vs no HC 
+    IQALYbase_no = H.QALY[sub] - H0.QALY[sub]  # base case vs no HC
+    miq_scenno = IQALYscen_no.sum() / nhc
+    miq_baseno = 0 if (nhcbase==0) else IQALYbase_no.sum() / nhcbase
+    M[ind,6] = (miq_scenno - miq_baseno)*days 
+    ILYscen_no = H1.LY[sub] - H0.LY[sub] 
+    ILYbase_no = H.LY[sub] - H0.LY[sub]  
+    mil_scenno = ILYscen_no.sum() / nhc
+    mil_baseno = 0 if (nhcbase==0) else ILYbase_no.sum() / nhcbase
+    M[ind,7] = (mil_scenno - mil_baseno)*days
+    vscen = ((IQALYscen_no - miq_scenno)**2).sum() / nhc
+    vbase = 0 if (nhcbase==0) else ((IQALYbase_no - miq_baseno)**2).sum() / nhcbase
+    varM6 = vscen + vbase
+    S[ind,6] = np.sqrt(varM6)*days
+    vscen = ((ILYscen_no - miq_scenno)**2).sum() / nhc
+    vbase = 0 if (nhcbase==0) else ((ILYbase_no - miq_baseno)**2).sum() / nhcbase
+    varM7 = vscen + vbase
+    S[ind,7] = np.sqrt(varM7)*days
+         
+#    IQALY.sum() / nhc * days 
+#    ILY.sum() / nhc * days
+#    S[ind,6] = np.sqrt( ((IQALY - M[ind,6])*(IQALY - M[ind,6])).sum() / nhc ) * days 
+#    S[ind,7] = np.sqrt( ((ILY - M[ind,7])*(ILY - M[ind,7])).sum() / nhc ) * days 
 
     H.dead = np.logical_not(H.alive)
     H1.dead = np.logical_not(H1.alive)    
@@ -112,11 +100,13 @@ def GetResults_sub(sub, ind, H, H1, M, S, NT):
     return M,S,NT
     
 
-def GetResults_longterm(H, H1, M, S, N):
+def GetResults_longterm(H, H1, H0, M, S, N):
+    '''Define various subpopulations of interest and get their expected sizes, QALY and events results'''
     allpop = np.ones(H1.population_size, dtype=bool)
-    el_once = (H1.eligible.sum(axis=1)>0)
+    ## eligible, offered, or attend at least once 
+    el = (H1.eligible.sum(axis=1)>0) 
     hc_offered = (H1.OfferedHC.sum(axis=1)>0)
-    att_once = (H1.Attending.sum(axis=1)>0)
+    att = (H1.Attending.sum(axis=1)>0)
     t_offered = (H1.OfferedTreatment.sum(axis=1)>0)
 
     ## Eligible for HC and for each kind of treatment at any time, using either Q>=20 or Q>=10
@@ -149,18 +139,18 @@ def GetResults_longterm(H, H1, M, S, N):
     aht = (H1.Hypertensives.sum(axis=1)>0)
     sc = (H1.SmokingCessation.sum(axis=1)>0)
     wr = (H1.WeightReduction.sum(axis=1)>0)
-    total_hc = H1.Attending.sum()
+    nhc = H1.Attending.sum()
 
     NT = np.zeros(5, dtype=int) # unused in this function
-    M, S, NT = GetResults_sub(allpop,     0, H, H1, M, S, NT)
-    M, S, NT = GetResults_sub(el_once,     1, H, H1, M, S, NT)
-    M, S, NT = GetResults_sub(att_once, 2, H, H1, M, S, NT)
-    M, S, NT = GetResults_sub(t_offered,  3, H, H1, M, S, NT)
-    M, S, NT = GetResults_sub(dep,        4, H, H1, M, S, NT)
-    M, S, NT = GetResults_sub(ndep,       5, H, H1, M, S, NT)
+    M, S, NT = GetResults_sub(allpop,     0, H, H1, H0, M, S, NT)
+    M, S, NT = GetResults_sub(el,     1, H, H1, H0, M, S, NT)
+    M, S, NT = GetResults_sub(att, 2, H, H1, H0, M, S, NT)
+    M, S, NT = GetResults_sub(t_offered,  3, H, H1, H0, M, S, NT)
+    M, S, NT = GetResults_sub(dep,        4, H, H1, H0, M, S, NT)
+    M, S, NT = GetResults_sub(ndep,       5, H, H1, H0, M, S, NT)
 
-    N[1] = el_once.sum()
-    N[2] = att_once.sum()
+    N[1] = el.sum()
+    N[2] = att.sum()
     N[3] = t_offered.sum()
     N[4] = dep.sum()
     N[5] = ndep.sum()
@@ -176,53 +166,91 @@ def GetResults_longterm(H, H1, M, S, N):
     N[15] = aht.sum()
     N[16] = sc.sum()
     N[17] = wr.sum()
-    N[18] = total_hc
+    N[18] = nhc
 
     return M,S,N
 
 
-def BaselineCharsSub(H, H1, sub):
+
+def FirstHC(H1):
+    ''' returns time when first HC occurs for each person'''
+    FHC = np.zeros((H1.population_size), dtype=np.int) - 1
+    for i in range(H1.population_size):
+        try:
+            FHC[i] = np.where(H1.Attending[i]==1)[0][0]
+        except:
+            pass # no attendance for this individual
+    return FHC
+
+
+def PostHCOuts(H, H1):
+    ''' 10-year improvement in QRisk and other factors, given by HC '''
+    att = H1.Attending.sum(axis=1)>0
+    HC1 = FirstHC(H1)[att]
+    qcon =  H.QRisk[att, HC1 + 10] - H.QRisk[att, HC1]   # change in qrisk over 10 years, neg good, will be pos as increases with age 
+    qhc =   H1.QRisk[att, HC1 + 10] - H1.QRisk[att, HC1]
+    qdiff = qhc - qcon                # lower change under hc, negative is good 
+    scon =  H.q_sbp[att, HC1 + 10] - H.q_sbp[att, HC1]
+    shc =   H1.q_sbp[att, HC1 + 10] - H1.q_sbp[att, HC1]
+    sdiff = shc - scon 
+    dcon =  H.dia[att, HC1 + 10] - H.dia[att, HC1]
+    dhc =   H1.dia[att, HC1 + 10] - H1.dia[att, HC1]
+    ddiff = dhc - dcon 
+    ccon =  H.chol[att, HC1 + 10] - H.chol[att, HC1]
+    chc =   H1.chol[att, HC1 + 10] - H1.chol[att, HC1]
+    cdiff = chc - ccon 
+    
+    posthcmeans = [ qdiff.mean(), sdiff.mean(), ddiff.mean(), cdiff.mean() ] 
+    posthcsds = [ qdiff.std(), sdiff.std(), ddiff.std(), cdiff.std() ] 
+    
+    return np.column_stack((posthcmeans, posthcsds))
+
+
+def GetResults_paper(H, H1, H0, M, S, N, P):
+    M, S, N = GetResults_longterm(H, H1, H0, M, S, N)
+    P = PostHCOuts(H, H1)
+    return M, S, N, P
+
+
+def BaselineCharsSub(H, sub):
+    '''Demographic characteristics of simulated population under base case'''
+
     return [
-        np.bincount(H1.gender[sub]).tolist(),  # 0 female 1 male 
-        np.bincount(H1.eth[sub]).tolist(),
-        np.bincount(H1.SES[sub]).tolist(),
-        np.bincount(H1.educ[sub]).tolist(),
-        [H1.age[sub,0].mean(), np.percentile(H1.age[sub,0], 25), np.percentile(H1.age[sub,0], 75)],
-        [H1.QRisk[sub,0].mean(), np.percentile(H1.QRisk[sub,0], 25), np.percentile(H1.QRisk[sub,0], 75)],
-        [(H1.QRisk[sub,0]>=20).sum()],
-        [np.logical_and(H1.QRisk[sub,0]>=10, H1.QRisk[sub,0]<20).sum()],
-        [H1.q_sbp[sub,0].mean(), np.percentile(H1.q_sbp[sub,0], 25), np.percentile(H1.q_sbp[sub,0], 75)],
-        [H1.dia[sub,0].mean(), np.percentile(H1.dia[sub,0], 25), np.percentile(H1.dia[sub,0], 75)],
-        [np.logical_or(H1.q_sbp[sub,0]>=140, H1.dia[sub,0]>=90).sum()],
-        [H1.q_b_treatedhyp[sub,0].sum()],
-        [H1.chol[sub,0].mean(), np.percentile(H1.chol[sub,0], 25), np.percentile(H1.chol[sub,0], 75)],
-        [H1.q_rati[sub,0].mean(), np.percentile(H1.q_rati[sub,0], 25), np.percentile(H1.q_rati[sub,0], 75)],
-        [H1.bmi[sub,0].mean(), np.percentile(H1.bmi[sub,0], 25), np.percentile(H1.bmi[sub,0], 75)],
-        [(H1.bmi[sub,0]>=30).sum()],
-        [H1.glyhb[sub,0].mean(), np.percentile(H1.glyhb[sub,0], 25), np.percentile(H1.glyhb[sub,0], 75)],
-        [(H1.glyhb[:,0]>=6.5).sum()],
-        [H1.diabetes[sub,0].sum()],
-        np.bincount(H1.q_smoke_cat[sub,0]).tolist()
+        np.bincount(H.gender[sub]).tolist(),  # 0 female 1 male 
+        np.bincount(H.eth[sub]).tolist(),
+        np.bincount(H.SES[sub]).tolist(),
+        np.bincount(H.educ[sub]).tolist(),
+        [H.age[sub,0].mean(), np.percentile(H.age[sub,0], 25), np.percentile(H.age[sub,0], 75)],
+        [H.QRisk[sub,0].mean(), np.percentile(H.QRisk[sub,0], 25), np.percentile(H.QRisk[sub,0], 75)],
+        [(H.QRisk[sub,0]>=20).sum()],
+        [np.logical_and(H.QRisk[sub,0]>=10, H.QRisk[sub,0]<20).sum()],
+        [H.q_sbp[sub,0].mean(), np.percentile(H.q_sbp[sub,0], 25), np.percentile(H.q_sbp[sub,0], 75)],
+        [H.dia[sub,0].mean(), np.percentile(H.dia[sub,0], 25), np.percentile(H.dia[sub,0], 75)],
+        [np.logical_or(H.q_sbp[sub,0]>=140, H.dia[sub,0]>=90).sum()],
+        [H.q_b_treatedhyp[sub,0].sum()],
+        [H.chol[sub,0].mean(), np.percentile(H.chol[sub,0], 25), np.percentile(H.chol[sub,0], 75)],
+        [H.q_rati[sub,0].mean(), np.percentile(H.q_rati[sub,0], 25), np.percentile(H.q_rati[sub,0], 75)],
+        [H.bmi[sub,0].mean(), np.percentile(H.bmi[sub,0], 25), np.percentile(H.bmi[sub,0], 75)],
+        [(H.bmi[sub,0]>=30).sum()],
+        [H.glyhb[sub,0].mean(), np.percentile(H.glyhb[sub,0], 25), np.percentile(H.glyhb[sub,0], 75)],
+        [(H.glyhb[:,0]>=6.5).sum()],
+        [H.diabetes[sub,0].sum()],
+        np.bincount(H.q_smoke_cat[sub,0]).tolist()
     ]
 
 
-def BaselineChars(H, H1):
+def BaselineChars(H1):
+    '''Demographic characteristics of simulated population at baseline, all population and specific subsets'''
     allpop = np.ones(H1.population_size, dtype=bool)
-    base_all = BaselineCharsSub(H, H1, allpop)
+    base_all = BaselineCharsSub(H1, allpop)
 
     ## People who are eligible for HC at any time
     el = H1.eligible.sum(axis=1)>0
-    base_el = BaselineCharsSub(H, H1, el)
-
+    base_el = BaselineCharsSub(H1, el)
+    
     ## People who go on to attend HC, still at baseline
     att = H1.Attending.sum(axis=1)>0
-    base_att = BaselineCharsSub(H, H1, att)
+    base_att = BaselineCharsSub(H1, att)
     
     flatten = lambda l: [item for sublist in l for item in sublist]
     return np.column_stack((flatten(base_all), flatten(base_el), flatten(base_att)))
-    
-
-def GetResults_paper(H, H1, M, S, N, P):
-    M, S, N = GetResults_longterm(H, H1, M, S, N)
-    P = PostHCOuts(H, H1)
-    return M, S, N, P

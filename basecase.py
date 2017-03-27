@@ -1,3 +1,7 @@
+# Script to run the model and extract results for the base case scenario alone
+# Results to extract defined in getresults.py 
+# Produces CSVs which are then converted to results tables in tables.r 
+
 import os
 import sys
 import HC_main as hc
@@ -7,7 +11,7 @@ import getresults as gr
 st = 70
 ps = 250000
 n_cpus = 4
-prefix = "results/paperfeb/base"
+prefix = "results/papertest/base"
 randpars = False
 
 ## used for running a large population in a set of batches
@@ -20,10 +24,10 @@ else: run = 0
 if (len(sys.argv) > 2):
     n_cpus = int(sys.argv[2])
 
-npops = 6 # number of subpopulations
-npopsn = 19 # number of subpopulations to calculate size of
+npops = 6 # number of subpopulations for which QALY gains etc are calculated 
+npopsn = 19 # number of subpopulations whose expected size alone is of interest
 nouts = 38 # number of outputs (LY, QALY etc)
-noutsp = 4  # number of post-HC outputs 
+noutsp = 4  # number of post-HC outputs (e.g. 10-year reduction in QRisk given by HC)
 
 M = np.zeros((npops, nouts))
 S = np.zeros((npops, nouts))
@@ -54,7 +58,7 @@ H1.Run()
 ## Allows calculation of IQRs, which is tricky with combining aggregate outcomes from multiple runs. 
 ## Assume estimates of percentages/means precise enough with ps=250000 
 
-B = gr.BaselineChars(H, H1)
+B = gr.BaselineChars(H1)
 np.savetxt("%s_baseline_%s.csv" % (prefix,run), B, delimiter=",")
-M, S, N, P = gr.GetResults_paper(H, H1, M, S, N, P)
+M, S, N, P = gr.GetResults_paper(H, H1, H, M, S, N, P)
 SaveResults(M, S, N, P, npops, nouts, prefix)

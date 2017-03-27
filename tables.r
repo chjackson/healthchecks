@@ -1,6 +1,3 @@
-### TODO
-### Statistical uncertainty for at least base case, ideally all scenarios 
-
 library(tidyverse)
 library(forcats)
 
@@ -10,8 +7,9 @@ library(forcats)
 
 nruns <- 40
 npoprun <- 25000
-aname <- "results/paperfeb/scen"
+aname <- "results/papermar/scen"
 n <- npoprun*nruns
+statunc <- TRUE
 
 scn <- c("Base case","Invite high BP", "Attend age 50-74", "Attend age 40-80", "Attend age 50-80",
          "Baseline uptake +30%","Uptake +30% in most deprived","Uptake of smokers +30%","+30% uptake for QRisk > 20",
@@ -39,62 +37,102 @@ npopsn <- length(npopn)
 postn <- c("QRisk","SBP","DBP")
 npostn <- length(postn)
 
-M <- S <- N <- Npop <- Tot <- Sumsq <- vector(nruns, mode="list")
-P <- PM <- PS <- Ptot <- Psumsq <- vector(nruns, mode="list")
-Marr <- array(dim=c(nruns, nsc, nouts, npops)) # different format, for statistical uncertainty
-Percarr <- array(dim=c(nruns, nsc, npops)) # different format, for statistical uncertainty
+## Results without statistical uncertainty
 
-for (i in 1:nruns){
-    M[[i]] <- array(as.matrix(read.csv(sprintf("%s_mean_%s.csv",aname,i),header=FALSE)),
-                    dim=c(nsc, nouts, npops), dimnames=list(scn, outn, popn))
-    Marr[i,,,] <- M[[i]]
-    S[[i]] <- array(as.matrix(read.csv(sprintf("%s_SD_%s.csv",aname,i),header=FALSE)),
-                    dim=c(nsc, nouts, npops), dimnames=list(scn, outn, popn))
-    N[[i]] <- as.matrix(read.csv(sprintf("%s_N_%s.csv",aname,i),header=FALSE))
-    dimnames(N[[i]]) <- list(scn, npopn)
-    P[[i]] <- array(as.matrix(read.csv(sprintf("%s_post_%s.csv",aname,i),header=FALSE)),
-                    dim=c(nsc, 2, npostn), dimnames=list(scn, c("Mean","SD"), postn))
-    PM[[i]] <- P[[i]][,1,]; PS[[i]] <- P[[i]][,2,]
-    if (nsc==1){
-        Percarr[i,1,] <- N[[i]][,2:9,drop=FALSE] / N[[i]][,1]
+if (!statunc) { 
+    M <- S <- N <- Npop <- Tot <- Sumsq <- vector(nruns, mode="list")
+    P <- PM <- PS <- Ptot <- Psumsq <- vector(nruns, mode="list")
+
+    for (i in 1:nruns){
+        M[[i]] <- array(as.matrix(read.csv(sprintf("%s_mean_%s.csv",aname,i),header=FALSE)),
+                        dim=c(nsc, nouts, npops), dimnames=list(scn, outn, popn))
+        S[[i]] <- array(as.matrix(read.csv(sprintf("%s_SD_%s.csv",aname,i),header=FALSE)),
+                        dim=c(nsc, nouts, npops), dimnames=list(scn, outn, popn))
+        N[[i]] <- as.matrix(read.csv(sprintf("%s_N_%s.csv",aname,i),header=FALSE))
+        dimnames(N[[i]]) <- list(scn, npopn)
+        P[[i]] <- array(as.matrix(read.csv(sprintf("%s_post_%s.csv",aname,i),header=FALSE)),
+                        dim=c(nsc, 2, npostn), dimnames=list(scn, c("Mean","SD"), postn))
+        PM[[i]] <- P[[i]][,1,]; PS[[i]] <- P[[i]][,2,]
+        Npop[[i]] <- N[[i]][,1:npops,drop=FALSE]
+        Tot[[i]] <- Sumsq[[i]] <- array(dim=dim(M[[i]]))
+        for (j in 1:nouts){
+            Tot[[i]][,j,] <- M[[i]][,j,] * Npop[[i]]
+            Sumsq[[i]][,j,] <- S[[i]][,j,] * Npop[[i]]
+        }
+        Ptot[[i]] <- P[[i]][,1,] * Npop[[i]][,"Attending"]
+        Psumsq[[i]] <- P[[i]][,2,] * Npop[[i]][,"Attending"]
     }
-    Npop[[i]] <- N[[i]][,1:npops,drop=FALSE]
-    Tot[[i]] <- Sumsq[[i]] <- array(dim=dim(M[[i]]))
+
+    Nall <- Reduce("+", N)
+    Npopall <- Reduce("+", Npop)
+    Tot <- Reduce("+", Tot)
+    Sumsq <- Reduce("+", Sumsq)
+    Ptot <- Reduce("+", Ptot)
+    Psumsq <- Reduce("+", Psumsq)
+
+    Mall <- Sall <- array(dim=dim(Tot))
+    for (j in 1:nouts){ 
+        Mall[,j,] <- Tot[,j,] / Npopall
+        Sall[,j,] <- Sumsq[,j,] / Npopall
+    }
+    Pall <- Ptot / Npopall[,"Attending"]
+    PSall <- Psumsq / Npopall[,"Attending"]
+    
+    M <- Mall; S <- Sall; Npop <- Npopall; P <- Pall; PS <- PSall
+    dimnames(M) <- dimnames(S) <- list(scn, outn, popn)
+    dimnames(Npop) <- list(scn, popn)
+    SE <- S
     for (j in 1:nouts){
-        Tot[[i]][,j,] <- M[[i]][,j,] * Npop[[i]]
-        Sumsq[[i]][,j,] <- S[[i]][,j,] * Npop[[i]]
+        SE[,j,] <- S[,j,] / sqrt(Npop)
     }
-    Ptot[[i]] <- P[[i]][,1,] * Npop[[i]][,"Attending"]
-    Psumsq[[i]] <- P[[i]][,2,] * Npop[[i]][,"Attending"]
+    PSE <- PS / sqrt(Npop[,"Attending"])
 }
 
-Nall <- Reduce("+", N)
-Npopall <- Reduce("+", Npop)
-Tot <- Reduce("+", Tot)
-Sumsq <- Reduce("+", Sumsq)
-Ptot <- Reduce("+", Ptot)
-Psumsq <- Reduce("+", Psumsq)
+### Results with statistical uncertainty
 
-Mall <- Sall <- array(dim=dim(Tot))
-for (j in 1:nouts){ 
-    Mall[,j,] <- Tot[,j,] / Npopall
-    Sall[,j,] <- Sumsq[,j,] / Npopall
+if (statunc) { 
+    npsa <- 1000 # number of runs with different parameter values. 100 took 7051 sec on HPC
+
+    resm <- as.matrix(read.table("results/papermar/unc_mean.csv", colClasses="numeric", sep=",", header=FALSE))
+    ress <- as.matrix(read.table("results/papermar/unc_SD.csv", colClasses="numeric", sep=",", header=FALSE))
+    str(resm) # npsa*nsc  x  npops*nouts + 1.
+    runid <- resm[,1]; resm <- resm[,-1]; ress <- ress[,-1]
+    n <- as.matrix(read.table("results/papermar/unc_N.csv", colClasses="numeric", sep=",", header=FALSE))[,(1:npops)+1]
+    str(n) # npsa*nsc  x  npops
+    Mrep <- array(resm, dim=c(nsc, npsa, nouts, npops))
+    Srep <- array(ress, dim=c(nsc, npsa, nouts, npops))
+    dimnames(Mrep) <- dimnames(Srep) <- list(scn[1:nsc], 1:npsa, outn, popn)
+    Nrep <- array(n, dim=c(nsc, npsa, npops))
+    dimnames(Nrep) <- list(scn[1:nsc], 1:npsa, popn)
+
+### for count outcomes, uses normal approx to dist of proportion
+    n <- apply(Nrep, c(1,3), mean) # mean within-simulation pop size
+    n <- array(n, dim=c(nsc,1,npops))[,rep(1,nouts),,drop=FALSE] # match dims of M, S
+    mu <- apply(Mrep, c(1,3,4), mean)
+    sigsq <- apply(Mrep, c(1,3,4), var)
+    tausq <- apply(Srep^2, c(1,3,4), mean)
+    ## Monte Carlo standard error around the mean
+    semu <- sqrt(sigsq / npsa + tausq/(npsa*n))
+    ## Statistical uncertainty
+    sd <- sqrt(sigsq) # standard MC est is biased
+    ## Monte Carlo standard error around the variance (SD^2)
+    sevar <- sqrt(2/(npsa-1))*(sigsq + tausq/n)
+    ## Monte Carlo standard error around the SD (using delta method
+    sesd <- 0.5*sevar/sd
+    ## Bias-corrected estimates, may not work for smaller n
+    sigsqA <- sigsq - tausq/n # ...as this could be negative
+    sdA <- sqrt(sigsqA)
+    sevarA <- sqrt(2*((sigsqA + tausq/n)^2 / (npsa-1) + tausq^2 /(npsa*n^2*(n-1))))
+    sesdA <- 0.5*sevarA/sdA
+    res <- array(c(mu, sd, semu), dim=c(dim(mu), 3),
+                 dimnames=c(dimnames(mu), list(c("mu","sd","semu"))))
+    M <- mu
+    SE <- sd 
 }
-Pall <- Ptot / Npopall[,"Attending"]
-PSall <- Psumsq / Npopall[,"Attending"]
-  
-M <- Mall; S <- Sall; Npop <- Npopall; P <- Pall; PS <- PSall
-dimnames(M) <- dimnames(S) <- list(scn, outn, popn)
-dimnames(Npop) <- list(scn, popn)
 
-M[,c(outn.d, outn.ev),] <- M[,c(outn.d, outn.ev),]*n
-S[,c(outn.d, outn.ev),] <- S[,c(outn.d, outn.ev),]*n
-SE <- S
-for (j in 1:nouts){
-    SE[,j,] <- S[,j,] / sqrt(Npop)
-}
-PSE <- PS / sqrt(Npop[,"Attending"])
-
+## convert events averted from proportion to "per million population"
+M[,c(outn.d, outn.ev),] <- M[,c(outn.d, outn.ev),]*1000000
+SE[,c(outn.d, outn.ev),] <- SE[,c(outn.d, outn.ev),]*1000000
 rows.ev <- c("IHD80_i",  "STR80_i", "DEM80_i",  "LC80_i", 
           "IHD100_i", "STR100_i", "DEM100_i", "LC100_i",
           "D75_i", "D80_i")   
@@ -157,7 +195,7 @@ rows <- c("Eligibility and uptake",
 res <- rbind(resperc, resm.ev, resm.ly, reshead)[rows,]
 options(width=180)
 res[,1:5]
-res[,c(1,6:9)]
+res[,c(6:9)]
 res[,10:12]
 res[,13:18]
 
@@ -168,6 +206,49 @@ write.table(res, "tab_res.txt", quote=FALSE, sep="\t", row.names=FALSE, na="")
 P["Base case",]
 PSE["Base case",]
 
+## Compare results with stat unc line by line to current results
+## Point ests a bit different due to nonlinearity in model
+## was 1092 now 1059
+## 511 now 449 for stroke
+## 5-10% increases in QALY gains
+## stat SD is 10-20 times comp SE 
+## notice large stat SDs for event counts 
+
+
+## Expected value of partial perfect information for each parameter
+library(earth)
+source("parnames.r")
+
+pars <- as.matrix(read.table("results/papermar/unctest_pars.csv", colClasses="numeric",sep=","))
+colnames(pars) <- parnames
+pars <- pars[,setdiff(colnames(pars), fixedpars)]
+pars <- pars[rep(1:5, 1000/5), ] # replicate to 1000 for the moment and add noise, until proper run done 
+pars <- pars + rnorm(1000, 0, 0.01)
+npars <- ncol(pars)
+## headline output 
+y <- as.numeric(Mrep["Base case",,"IQALY","All"])
+evpi <- sqrt(var(y))
+pevppi <- matrix(nrow=npars, ncol=1)
+for(i in 1:npars){
+    x <- pars[,i]
+    pevppi[i] <- var(fitted(earth(x, y))) / var(y)  ## EVPPI as prop of EVPI
+}
+pevppi[pevppi<1e-05] <- 0
+eres <- data.frame(var=colnames(pars), pevppi=pevppi)
+eres %>% arrange(desc(pevppi))
+# 
+### how accurate is this with 1000?
+### SEs around regression estimates
+
+## mod <- earth(X, Y, nfold=10, ncross=30, varmod.method="const", Get.leverages=TRUE)
+## se <- sqrt(mod$varmod$model.var)
+## B <- 1000
+## evppi.rep <- numeric(B)
+## for(i in 1:B)
+##     evppi.rep[i] <- var(rnorm(length(fitted(mod)), fitted(mod), se)) 
+## pe[i,j] <- sd(evppi.rep) / var(Y)
+
+1
 
 
 ############################################################
@@ -188,9 +269,6 @@ npopn <- c(popn,
 npopsn <- length(npopn)
 
 N <- read.csv("results/paperfeb/base_N_0.csv", header=FALSE, row.names=npopn)
-Nall <- Npop["Base case","All"]
-Nel <- Npop["Base case","Eligible"]
-Natt <- Npop["Base case","Attending"]
 B <- read.csv("results/paperfeb/base_baseline_0.csv", header=FALSE, col.names=c("all","elig","hc"))
 vnames <-
     rbind(cbind("Gender",c("Male","Female")),
@@ -216,7 +294,9 @@ vnames <-
           )
 ndec <- 1
 colnames(vnames) <- c("var","val")
-B <- cbind(B, vnames) %>%
+B <- cbind(B, vnames)
+
+B <- B %>%
   filter(!(val==0)) %>%
   filter(!(var=="Education" & val==2)) %>% 
     mutate(all=round(all,ndec),
@@ -238,7 +318,7 @@ inds <- B$order[match(c("Caribbean", "African", "Other"), B$val)]  # put Other e
 B$order[inds] <- sort(B$order[inds])
 levels(B$val)[levels(B$val)=="Current20+"] <- "Current"
 
-BN <- data.frame(val="N", all=Nall, elig=Nel, hc=Natt)
+BN <- data.frame(val="N", all=Npop["Base case","All"], elig=Npop["Base case","Eligible"], hc=Npop["Base case","Attending"])
 BN[,-1] <- 1000000 * BN[,-1] / BN[,"all"]
 Bmean <- filter(B, val=="mean") %>% 
     mutate(meanall=all, meanel=elig, meanhc=hc) %>%
@@ -257,15 +337,15 @@ Bcont <- left_join(left_join(Bmean, Bq25), Bq75) %>%
   select(var, val, all, elig, hc, order) 
 Bn <- filter(B, val=="n") %>%
     mutate(val=var,
-           all=paste0(round(100*all/Nall,ndec), "%"),
-           elig=paste0(round(100*elig/Nel,ndec), "%"),
-           hc=paste0(round(100*hc/Natt,ndec), "%")) %>% 
+           all=paste0(round(100*all/N["All",],ndec), "%"),
+           elig=paste0(round(100*elig/N["Eligible",],ndec), "%"),
+           hc=paste0(round(100*hc/N["Attending",],ndec), "%")) %>% 
     select(var, val, all, elig, hc, order)
 catvars <- c("Gender", "Ethnicity", "Deprivation", "Education", "Smoking")
 Bcat <- filter(B, var %in% catvars) %>%
-    mutate(all=paste0(round(100*all/Nall,ndec),"%"),
-           elig=paste0(round(100*elig/Nel,ndec),"%"),
-           hc=paste0(round(100*hc/Natt,ndec), "%")) %>% 
+    mutate(all=paste0(round(100*all/N["All",],ndec),"%"),
+           elig=paste0(round(100*elig/N["Eligible",],ndec),"%"),
+           hc=paste0(round(100*hc/N["Attending",],ndec), "%")) %>% 
     select(var, val, all, elig, hc, order)
 Bhead <- Bcat %>% group_by(var) %>% summarise(order=min(order) - 0.5) %>%
     mutate(val=var, all="", elig="", hc="") %>%
@@ -289,3 +369,5 @@ round(100*cbind(p, pse, p-1.96*pse, p+1.96*pse), 2)
 Nall
 
 # These are only really accurate to 2 sf 
+
+

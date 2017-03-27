@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --nodes=5
 #SBATCH --ntasks=20
-#SBATCH --time=08:00:00
+#SBATCH --time=1:00:00
 
 start=`date +%s`
 
@@ -29,7 +29,7 @@ do
     do
 	k=$(((j-1)*nruns + i))
 	echo "Starting run $k"
-	srun --exclusive -n 1 python basecase_unc.py $k $n_cpus &
+	srun --exclusive -n 1 python scenarios_unc.py $k $n_cpus &
     done
     wait
 done
@@ -39,7 +39,7 @@ for i in `seq 1 $nrem`;
 do
     k=$((nbatch*nruns + i))
     echo "Starting run $k"
-    srun --exclusive -n 1 python basecase_unc.py $k $n_cpus &
+    srun --exclusive -n 1 python scenarios_unc.py $k $n_cpus &
 done
 wait
 
@@ -47,12 +47,12 @@ end=`date +%s`
 runtime=$((end-start))
 echo "RUN TIME: $runtime SECONDS"
 
-### Base case only, with subset trick 
-### 43 runs of 1000:  216 seconds 
-### 100 runs of 25000, 4 cores per job: 2332 seconds, no job kill: 8 hours 
+### Base case
+### 1000 runs of 25000, 4 cores per run, 20 runs in parallel, 6501 seconds
 
-## TODO what is the default memory, and will increasing it allow bigger pops? 
 
+
+############################################################
 
 ### 16 cores is the max 
 ### how many nodes is the max? 

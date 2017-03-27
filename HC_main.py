@@ -3,22 +3,12 @@
 
 HEALTH CHECKS MODEL
 
-Definitive version stored on github from 30 Aug 2016 onwards
-
-Chris's changes against Arno's v 7.11 for initial github upload
-* Add CalculateLY, SimulateAndResults
-* Make nprocs an argument to main class
-* Make randpars an argument
-* Note v.712 edits with instant death rate not included
-
-Any further changes will be documented via github
-
 @author:
 Arno Steinacher as2441@cam.ac.uk
-Chris Jackson chj20@mrc-bsu.cam.ac.uk
+Chris Jackson chris.jackson@mrc-bsu.cam.ac.uk
 
 @maintainer
-Chris Jackson chj20@mrc-bsu.cam.ac.uk
+Chris Jackson chris.jackson@mrc-bsu.cam.ac.uk
 
 """
 
@@ -135,9 +125,9 @@ class HealthChecksModel:
 
 
     def ResetUncertainParameters(self):
-        '''defining parameters that are uncertain and making them changeable globally
-        all numbers are given as ratios scaled to 1 (ie. 0 = 0%, 1 = 100%)'''
+        '''defining parameters that are uncertain and making them changeable globally'''
 
+        ### TODO there is no need to keep two copies of every parameter - clean this up
 
         # reset global parms variable
         self.parms = copy.deepcopy(parms)
@@ -400,11 +390,11 @@ class HealthChecksModel:
 #            pass
 
     def GetNumberOfCPUs(self):
-        '''returns number of CPUs used for parallel tasks (matchin processes)'''
+        '''returns number of CPUs used for parallel tasks (matching processes)'''
         return self.nprocs
 
     def SetNumberOfCPUs(self,cpus):
-        '''sets number of CPUs used for parallel tasks (matchin processes)'''
+        '''sets number of CPUs used for parallel tasks (matching processes)'''
         self.nprocs = cpus
         if self.verbose == True:
             print('Multiprocessing will use %d workers' % self.nprocs)
@@ -2873,10 +2863,13 @@ class HealthChecksModel:
 
         # extra relative turnup rates (not odds ratios) applied in additional scenarios 
         self.RelTurnupScen = np.zeros(self.population_size) + 1
-        self.RelTurnupScen[p_s5] = self.ses5_extra_uptake
-        self.RelTurnupScen[p_sm] = self.sm_extra_uptake
-        self.RelTurnupScen[p_q5] = self.q5_extra_uptake
-        
+        if (self.ses5_extra_uptake > 1): 
+            self.RelTurnupScen[p_s5] = self.ses5_extra_uptake
+        if (self.sm_extra_uptake > 1): 
+            self.RelTurnupScen[p_sm] = self.sm_extra_uptake
+        if (self.q5_extra_uptake > 1): 
+            self.RelTurnupScen[p_q5] = self.q5_extra_uptake
+
         # delete internal arrays
         del p_age,p_gender,p_eth,p_smoking,p_nonsm,p_sm,p_ses,p_qrisk,p_s1,p_s2,p_s3,p_s4,p_s5
         del p_q1,p_q2,p_q3,p_q4,p_q5,p_m,p_f
@@ -3791,7 +3784,7 @@ class HealthChecksModel:
                 odds = pup/(1- pup) * or_uptake
                 pup = odds / (1 + odds)
                 pup *= rel_uptake
-
+                    
                 att_prob = self.alive[:,i] * elig_or_attend_anyway * pup
 
                 attending = r < att_prob
