@@ -34,7 +34,7 @@ Shell scripts are therefore used to simulate larger populations in batches.
 
 ###  Base case only 
 
-* Shell script [](basecase.sh), which calls the Python script `basecase.py`.
+* Shell script [basecase.sh](basecase.sh), which calls the Python script `basecase.py`.
 
 ###  All scenarios
 
