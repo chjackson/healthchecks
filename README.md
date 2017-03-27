@@ -15,10 +15,9 @@
 
 ```python
 import HC_main as hc
-simulation_time = 60 # simulation time in years
-population_size = 250000 # size of population
-n_cpus = 8 # select number of CPUs to be used for parallelisation, optimally the number of cores in computer used. If no parallelisation, choose 1 (slower).
-H = hc.HealthChecksModel(population_size=population_size, simulation_time=simulation_time, HealthChecks=False, nprocs=n_cpus)
+simulation_time = 60 # number of years to simulate
+n_cpus = 8           # number of CPU cores for parallelisation
+H = hc.HealthChecksModel(population_size=250000, simulation_time=simulation_time, HealthChecks=False, nprocs=n_cpus)
 H.Run()
 ```
 
