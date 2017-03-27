@@ -20,7 +20,7 @@ else: run = 0
 if (len(sys.argv) > 2):
     n_cpus = int(sys.argv[2])
 
-nsc = 18
+nsc = 18 # number of scenarios 
 npops = 6 # number of subpopulations
 npopsn = 19 # number of subpopulations to calculate size of
 nouts = 38 # number of outputs (LY, QALY etc)

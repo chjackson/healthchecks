@@ -15,12 +15,12 @@
 
 ```python
 import HC_main as hc
-simulation_time = 60 # number of years to simulate
-n_cpus = 8           # number of CPU cores for parallelisation
 H = hc.HealthChecksModel(population_size=250000,
-                         simulation_time=simulation_time,
+                         simulation_time=60, # number of years to simulate
                          HealthChecks=False,
-                         nprocs=n_cpus)
+						 randseed=1,         # random number seed 
+                         nprocs=n_cpus # number of CPU cores for parallelisation
+						 )
 H.Run()
 ```
 
@@ -46,11 +46,13 @@ Shell scripts are therefore used to simulate larger populations in batches.
 
 * Shell script [unc.sh](unc.sh), which calls the Python script [scenarios_unc.py](scenarios_unc.py).  Requires the SLURM high performance computing facility.
 
-###  Key constants 
+###  Key variables
 
-* `nruns` in the shell scripts specifies the number of batches
+* `nruns` in the shell scripts specifies the number of batches.
 * `ps` in the Python scripts gives the number of people in each batch.
 * The total population size is then `nruns*ps`.
+* `run` in the Python scripts is the batch number of the current run.  This is passed through from the shell script as a command line argument to the Python script, and is used as the random seed to simulate the current batch. 
+* `randpars` (`True` or `False`) specifies whether random parameter values are drawn for each batch.  Used to quantify statistical uncertainty. 
 
 ###  Formatting results 
 
