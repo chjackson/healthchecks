@@ -17,7 +17,7 @@ import os
 import numpy as np
 import random as rnd
 import HC_additional_functions as hadd
-from HC_parameters import P as parms
+from HC_parameters import P as parms, PU as parmsu
 import time
 import multiprocessing
 import copy
@@ -66,7 +66,7 @@ class HealthChecksModel:
             self.ResetUncertainParameters()
             for k, v in pars.items():
                 self.SetUncertainParameter(k, v)
-
+            
         # load time series from ELSA data
         self.LoadELSA_bp()
         self.LoadELSA_bmi()
@@ -125,143 +125,20 @@ class HealthChecksModel:
 
 
     def ResetUncertainParameters(self):
-        '''defining parameters that are uncertain and making them changeable globally'''
-
-        ### TODO there is no need to keep two copies of every parameter - clean this up
+        '''reset uncertain parameters to their point estimates'''
 
         # reset global parms variable
         self.parms = copy.deepcopy(parms)
+        self.parmsu = copy.deepcopy(parmsu)
+        UP = {}
+        ## Read in point estimate for each parameter from value in HC_parameters.py
+        ## and store in a self variable prepended with "up_"
+        for pn in self.parms.keys():
+            exec('self.up_%s = self.parms[\'%s\']' % (pn, pn))
 
-        UP = {} # dictionary containing all uncertain parameters
-
-        ######################################################
-        # load parameters that are changeable within model from parms
-
-        self.up_HC_offered = self.parms['HC_offered']; UP['up_HC_offered'] = self.up_HC_offered
-        self.up_HC_takeup = self.parms['HC_takeup']; UP['up_HC_takeup'] = self.up_HC_takeup
-
-        self.up_age_vec = self.parms['age'];         UP['up_age_vec'] = self.up_age_vec
-        self.up_gender_vec = self.parms['gender'];   UP['up_gender_vec'] = self.up_gender_vec
-        self.up_eth_vec = self.parms['ethnicity'];   UP['up_eth_vec'] = self.up_eth_vec
-        self.up_SES_vec = self.parms['SES'];         UP['up_SES_vec'] = self.up_SES_vec
-        self.up_smoker_vec = self.parms['smoker']; UP['up_smoker_vec'] = self.up_smoker_vec
-        self.up_QRisk_vec = self.parms['QR'];      UP['up_QRisk_vec'] = self.up_QRisk_vec
-
-        self.up_HC_takeup_noneligible = self.parms['HC_takeup_noneligible']
-        UP['up_HC_takeup_noneligible'] = self.up_HC_takeup_noneligible
-
-        self.up_HC_include_diabetes_registers = self.parms['HC_include_diabetes_registers']
-        UP['up_HC_include_diabetes_registers'] = self.up_HC_include_diabetes_registers
-
-        self.up_HC_include_CVD_registers = self.parms['HC_include_CVD_registers']
-        UP['up_HC_include_CVD_registers'] = self.up_HC_include_CVD_registers
-
-        self.up_HC_include_bp_registers = self.parms['HC_include_bp_registers']
-        UP['up_HC_include_bp_registers'] = self.up_HC_include_bp_registers
-
-        self.up_HC_smoker_ref = self.parms['HC_smoker_referral_rate']
-        UP['up_HC_smoker_ref'] = self.up_HC_smoker_ref
-
-        self.up_HC_weight_ref = self.parms['HC_weight_referral_rate']
-        UP['up_HC_weight_ref']= self.up_HC_weight_ref
-
-        self.up_HC_statins_presc_Q20minus = self.parms['HC_Q20minus_statins']
-        UP['up_HC_statins_presc_Q20minus'] = self.up_HC_statins_presc_Q20minus
-
-        self.up_HC_statins_presc_Q20plus = self.parms['HC_Q20plus_statins']
-        UP['up_HC_statins_presc_Q20plus'] = self.up_HC_statins_presc_Q20plus
-
-        self.up_HC_aht_presc_Q20minus = self.parms['HC_Q20minus_aht']
-        UP['up_HC_aht_presc_Q20minus'] = self.up_HC_aht_presc_Q20minus
-
-        self.up_HC_aht_presc_Q20plus = self.parms['HC_Q20plus_aht']
-        UP['up_HC_aht_presc_Q20plus'] = self.up_HC_aht_presc_Q20plus
-
-        self.up_Weight_comp = self.parms['Weight_compliance']
-        UP['up_Weight_comp'] = self.up_Weight_comp
-
-        self.up_Statins_comp = self.parms['Statins_compliance']
-        UP['up_Statins_comp'] = self.up_Statins_comp
-
-        self.up_AHT_comp = self.parms['AHT_compliance']
-        UP['up_AHT_comp'] = self.up_AHT_comp
-
-        self.up_Smoking_eff = self.parms['Smoking_eff']
-        UP['up_Smoking_eff'] = self.up_Smoking_eff
-
-        self.up_Statins_eff_male = self.parms['Statins_eff_male']
-        UP['up_Statins_eff_male'] = self.up_Statins_eff_male
-
-        self.up_Statins_eff_female = self.parms['Statins_eff_female']
-        UP['up_Statins_eff_female'] = self.up_Statins_eff_female
-
-        self.up_Statins_eff_HDL_male = self.parms['Statins_eff_HDL_male']
-        UP['up_Statins_eff_HDL_male'] = self.up_Statins_eff_HDL_male
-
-        self.up_Statins_eff_HDL_female = self.parms['Statins_eff_HDL_female']
-        UP['up_Statins_eff_HDL_female'] = self.up_Statins_eff_HDL_female
-
-        self.up_AHT_eff_age55minus_SBP = self.parms['AHT_eff_age55minus_SBP']
-        UP['up_AHT_eff_age55minus_SBP'] = self.up_AHT_eff_age55minus_SBP
-
-        self.up_AHT_eff_age55minus_DBP = self.parms['AHT_eff_age55minus_DBP']
-        UP['up_AHT_eff_age55minus_DBP'] = self.up_AHT_eff_age55minus_DBP
-
-        self.up_AHT_eff_age55plus_SBP_male = self.parms['AHT_eff_age55plus_SBP_male']
-        UP['up_AHT_eff_age55plus_SBP_male'] = self.up_AHT_eff_age55plus_SBP_male
-
-        self.up_AHT_eff_age55plus_SBP_female = self.parms['AHT_eff_age55plus_SBP_female']
-        UP['up_AHT_eff_age55plus_SBP_female'] = self.up_AHT_eff_age55plus_SBP_female
-
-        self.up_AHT_eff_age55plus_DBP_male = self.parms['AHT_eff_age55plus_DBP_male']
-        UP['up_AHT_eff_age55plus_DBP_male'] = self.up_AHT_eff_age55plus_DBP_male
-
-        self.up_AHT_eff_age55plus_DBP_female = self.parms['AHT_eff_age55plus_DBP_female']
-        UP['up_AHT_eff_age55plus_DBP_female'] = self.up_AHT_eff_age55plus_DBP_female
-
-        self.up_CVD_diagnosis_fraction = self.parms['CVD_diagnosis_fraction']
-        UP['up_CVD_diagnosis_fraction'] = self.up_CVD_diagnosis_fraction
-
-        self.up_bp_diagnosis_fraction = self.parms['bp_diagnosis_fraction']
-        UP['up_bp_diagnosis_fraction'] = self.up_bp_diagnosis_fraction
-
-        self.up_Smoking_relapsing_rate = self.parms['Smoking_relapsing_rate']
-        UP['up_Smoking_relapsing_rate'] = self.up_Smoking_relapsing_rate
-
-        self.up_Statins_dropout_rate = self.parms['Statins_dropout_rate']
-        UP['up_Statins_dropout_rate'] = self.up_Statins_dropout_rate
-
-        self.up_AHT_dropout_rate = self.parms['AHT_dropout_rate']
-        UP['up_AHT_dropout_rate'] = self.up_AHT_dropout_rate
-
-        self.up_HC_age_limit = self.parms['HC_age_limit']
-        UP['up_HC_age_limit'] = self.up_HC_age_limit
-
-        self.up_physically_active = self.parms['physically_active']
-        UP['up_physically_active'] = self.up_physically_active
-
-        ## CJ NEW STUFF
-        self.up_HC_takeup_rr_prev_att = self.parms['HC_takeup_rr_prev_att']
-        UP['up_HC_takeup_rr_prev_att'] = self.up_HC_takeup_rr_prev_att
-        self.up_HC_takeup_rr_not_prev_att = self.parms['HC_takeup_rr_not_prev_att']
-        UP['up_HC_takeup_rr_not_prev_att'] = self.up_HC_takeup_rr_not_prev_att
-        self.up_HC_offer_prev_att = self.parms['HC_offer_prev_att']
-        UP['up_HC_offer_prev_att'] = self.up_HC_offer_prev_att
-        self.up_HC_offer_not_prev_att = self.parms['HC_offer_not_prev_att']
-        UP['up_HC_offer_not_prev_att'] = self.up_HC_offer_not_prev_att
-        self.up_Statins_eff_extra_male = self.parms['Statins_eff_extra_male']
-        UP['up_Statins_eff_extra_male'] = self.up_Statins_eff_extra_male
-        self.up_Statins_eff_extra_female = self.parms['Statins_eff_extra_female']
-        UP['up_Statins_eff_extra_female'] = self.up_Statins_eff_extra_female
-        self.up_Weight_eff = self.parms['Weight_eff']
-        UP['up_Weight_eff'] = self.up_Weight_eff
-
-        self.ses5_extra_uptake = self.parms['ses5_extra_uptake']
-        UP['ses5_extra_uptake'] = self.parms['ses5_extra_uptake']
-        self.sm_extra_uptake = self.parms['sm_extra_uptake']
-        UP['sm_extra_uptake'] = self.parms['sm_extra_uptake']
-        self.q5_extra_uptake = self.parms['q5_extra_uptake']
-        UP['q5_extra_uptake'] = self.parms['q5_extra_uptake']
+        # Also populate a dictionary containing all uncertain parameters
+        for pn in self.parmsu.keys():
+            exec('UP[\'%s\'] = self.up_%s' % (pn, pn))
         
         # make list of all uncertain parameters global
         self.UP = copy.deepcopy(UP)
@@ -270,109 +147,68 @@ class HealthChecksModel:
         # reset global parms variable
 
 
-
-
     def ChangeUncertainParameters(self):
-        '''draw uncertain parameters from normal distributions around their specified mean and std'''
+        '''draw uncertain parameters from their uncertainty distributions'''
 
         # as a first step, reset all parameters to default, then draw from distributions
         self.ResetUncertainParameters()
 
         for i in range(4):
-            self.up_age_vec[i] = np.exp(np.random.normal(self.parms['age_log'][i], self.parms['age_selog'][i]))
+            self.up_age_log[i] = np.random.normal(self.parms['age_log'][i], self.parmsu['age_log']['se'][i])
+            self.up_age_vec[i] = np.exp(self.up_age_log[i])
         for i in range(2):
-            self.up_gender_vec[i] = np.exp(np.random.normal(self.parms['gender_log'][i], self.parms['gender_selog'][i]))
+            self.up_gender_log[i] = np.random.normal(self.parms['gender_log'][i], self.parmsu['gender_log']['se'][i])
+            self.up_gender_vec[i] = np.exp(self.up_gender_log[i])
         for i in range(4):
-            self.up_eth_vec[i] = np.exp(np.random.normal(self.parms['ethnicity_log'][i], self.parms['ethnicity_selog'][i]))
-        for i in range(4):
-            self.up_SES_vec[i] = np.exp(np.random.normal(self.parms['SES_log'][i], self.parms['SES_selog'][i]))
-        for i in range(2):
-            self.up_smoker_vec[i] = np.exp(np.random.normal(self.parms['smoker_log'][i], self.parms['smoker_selog'][i]))
+            self.up_eth_log[i] = np.random.normal(self.parms['eth_log'][i], self.parmsu['eth_log']['se'][i])
+            self.up_eth_vec[i] = np.exp(self.up_eth_log[i])
         for i in range(5):
-            self.up_QRisk_vec[i] = np.exp(np.random.normal(self.parms['QR_log'][i], self.parms['QR_selog'][i]))
+            self.up_SES_log[i] = np.random.normal(self.parms['SES_log'][i], self.parmsu['SES_log']['se'][i])
+            self.up_SES_vec[i] = np.exp(self.up_SES_log[i])
+        for i in range(2):
+            self.up_smoker_log[i] = np.random.normal(self.parms['smoker_log'][i], self.parmsu['smoker_log']['se'][i])
+            self.up_smoker_vec[i] = np.exp(self.up_smoker_log[i])
+        for i in range(5):
+            self.up_QRisk_log[i] = np.random.normal(self.parms['QRisk_log'][i], self.parmsu['QRisk_log']['se'][i])
+            self.up_QRisk_vec[i] = np.exp(self.up_QRisk_log[i])
 
-        self.up_HC_takeup_noneligible = np.random.beta(self.parms['HC_takeup_noneligible_betaa'], self.parms['HC_takeup_noneligible_betab'])
-        self.up_HC_smoker_ref = np.random.beta(self.parms['HC_smoker_referral_betaa'], self.parms['HC_smoker_referral_betab'])
-        self.up_HC_weight_ref = np.random.beta(self.parms['HC_weight_referral_betaa'], self.parms['HC_weight_referral_betab'])
-        self.up_HC_statins_presc_Q20minus = np.random.beta(self.parms['HC_Q20minus_statins_betaa'], self.parms['HC_Q20minus_statins_betab'])
-        self.up_HC_statins_presc_Q20plus = np.random.beta(self.parms['HC_Q20plus_statins_betaa'], self.parms['HC_Q20plus_statins_betab'])
-        self.up_HC_aht_presc_Q20minus = np.random.beta(self.parms['HC_Q20minus_aht_betaa'], self.parms['HC_Q20minus_aht_betab'])
-        self.up_HC_aht_presc_Q20plus = np.random.beta(self.parms['HC_Q20plus_aht_betaa'], self.parms['HC_Q20plus_aht_betab'])
+        self.up_HC_takeup_noneligible = np.random.beta(self.parmsu['HC_takeup_noneligible']['betaa'], self.parmsu['HC_takeup_noneligible']['betab'])
+        self.up_HC_smoker_ref = np.random.beta(self.parmsu['HC_smoker_ref']['betaa'], self.parmsu['HC_smoker_ref']['betab'])
+        self.up_HC_weight_ref = np.random.beta(self.parmsu['HC_weight_ref']['betaa'], self.parmsu['HC_weight_ref']['betab'])
+        self.up_HC_statins_presc_Q20minus = np.random.beta(self.parmsu['HC_statins_presc_Q20minus']['betaa'], self.parmsu['HC_statins_presc_Q20minus']['betab'])
+        self.up_HC_statins_presc_Q20plus = np.random.beta(self.parmsu['HC_statins_presc_Q20plus']['betaa'], self.parmsu['HC_statins_presc_Q20plus']['betab'])
+        self.up_HC_aht_presc_Q20minus = np.random.beta(self.parmsu['HC_aht_presc_Q20minus']['betaa'], self.parmsu['HC_aht_presc_Q20minus']['betab'])
+        self.up_HC_aht_presc_Q20plus = np.random.beta(self.parmsu['HC_aht_presc_Q20plus']['betaa'], self.parmsu['HC_aht_presc_Q20plus']['betab'])
 
-        self.up_Weight_comp  = np.random.beta(self.parms['Weight_compliance_betaa'], self.parms['Weight_compliance_betab'])
-        self.up_Statins_comp = np.random.beta(self.parms['Statins_compliance_betaa'], self.parms['Statins_compliance_betab'])
-        self.up_AHT_comp = np.random.beta(self.parms['AHT_compliance_betaa'], self.parms['AHT_compliance_betab'])
+        self.up_Weight_comp  = np.random.beta(self.parmsu['Weight_comp']['betaa'], self.parmsu['Weight_comp']['betab'])
+        self.up_Statins_comp = np.random.beta(self.parmsu['Statins_comp']['betaa'], self.parmsu['Statins_comp']['betab'])
+        self.up_AHT_comp = np.random.beta(self.parmsu['AHT_comp']['betaa'], self.parmsu['AHT_comp']['betab'])
 
-        self.up_Smoking_eff = np.random.beta(self.parms['Smoking_eff_betaa'], self.parms['Smoking_eff_betab'])
-        self.up_Weight_eff = np.random.normal(self.parms['Weight_eff'], self.parms['Weight_eff_std'])
+        self.up_Smoking_eff = np.random.beta(self.parmsu['Smoking_eff']['betaa'], self.parmsu['Smoking_eff']['betab'])
+        self.up_Weight_eff = np.random.normal(self.parms['Weight_eff'], self.parmsu['Weight_eff']['std'])
 
-        self.up_Statins_eff_male = np.random.normal(self.parms['Statins_eff_male'], self.parms['Statins_eff_male_std'])
-        self.up_Statins_eff_female = np.random.normal(self.parms['Statins_eff_female'], self.parms['Statins_eff_female_std'])
-        self.up_AHT_eff_age55minus_SBP = np.random.normal(self.parms['AHT_eff_age55minus_SBP'], self.parms['AHT_eff_age55minus_SBP_std'])
-        self.up_AHT_eff_age55minus_DBP = np.random.normal(self.parms['AHT_eff_age55minus_DBP'], self.parms['AHT_eff_age55minus_DBP_std'])
-        self.up_AHT_eff_age55plus_SBP_male = np.random.normal(self.parms['AHT_eff_age55plus_SBP_male'], self.parms['AHT_eff_age55plus_SBP_male_std'])
-        self.up_AHT_eff_age55plus_SBP_female = np.random.normal(self.parms['AHT_eff_age55plus_SBP_female'], self.parms['AHT_eff_age55plus_SBP_female_std'])
-        self.up_AHT_eff_age55plus_DBP_male = np.random.normal(self.parms['AHT_eff_age55plus_DBP_male'], self.parms['AHT_eff_age55plus_DBP_male_std'])
-        self.up_AHT_eff_age55plus_DBP_female = np.random.normal(self.parms['AHT_eff_age55plus_DBP_female'], self.parms['AHT_eff_age55plus_DBP_female_std'])
-        self.up_Statins_eff_HDL_male = np.random.normal(self.parms['Statins_eff_HDL_male'], self.parms['Statins_eff_HDL_male_std'])
-        self.up_Statins_eff_HDL_female = np.random.normal(self.parms['Statins_eff_HDL_female'], self.parms['Statins_eff_HDL_female_std'])
+        self.up_Statins_eff_male = np.random.normal(self.parms['Statins_eff_male'], self.parmsu['Statins_eff_male']['std'])
+        self.up_Statins_eff_female = np.random.normal(self.parms['Statins_eff_female'], self.parmsu['Statins_eff_female']['std'])
+        self.up_AHT_eff_age55minus_SBP = np.random.normal(self.parms['AHT_eff_age55minus_SBP'], self.parmsu['AHT_eff_age55minus_SBP']['std'])
+        self.up_AHT_eff_age55minus_DBP = np.random.normal(self.parms['AHT_eff_age55minus_DBP'], self.parmsu['AHT_eff_age55minus_DBP']['std'])
+        self.up_AHT_eff_age55plus_SBP_male = np.random.normal(self.parms['AHT_eff_age55plus_SBP_male'], self.parmsu['AHT_eff_age55plus_SBP_male']['std'])
+        self.up_AHT_eff_age55plus_SBP_female = np.random.normal(self.parms['AHT_eff_age55plus_SBP_female'], self.parmsu['AHT_eff_age55plus_SBP_female']['std'])
+        self.up_AHT_eff_age55plus_DBP_male = np.random.normal(self.parms['AHT_eff_age55plus_DBP_male'], self.parmsu['AHT_eff_age55plus_DBP_male']['std'])
+        self.up_AHT_eff_age55plus_DBP_female = np.random.normal(self.parms['AHT_eff_age55plus_DBP_female'], self.parmsu['AHT_eff_age55plus_DBP_female']['std'])
+        self.up_Statins_eff_HDL_male = np.random.normal(self.parms['Statins_eff_HDL_male'], self.parmsu['Statins_eff_HDL_male']['std'])
+        self.up_Statins_eff_HDL_female = np.random.normal(self.parms['Statins_eff_HDL_female'], self.parmsu['Statins_eff_HDL_female']['std'])
+        self.up_Statins_logeff_extra_male = np.random.normal(self.parms['Statins_logeff_extra_male'], self.parmsu['Statins_logeff_extra_male']['std'])
+        self.up_Statins_eff_extra_male = np.exp(self.up_Statins_logeff_extra_male)
+        self.up_Statins_logeff_extra_female = np.random.normal(self.parms['Statins_logeff_extra_female'], self.parmsu['Statins_logeff_extra_female']['std'])
+        self.up_Statins_eff_extra_female = np.exp(self.up_Statins_logeff_extra_female)
 
-        UP = {} # dictionary containing all uncertain parameters
-
-        UP['up_HC_offered'] = self.up_HC_offered
-        UP['up_HC_takeup'] = self.up_HC_takeup
-        UP['up_age_vec'] = self.up_age_vec
-        UP['up_gender_vec'] = self.up_gender_vec
-        UP['up_eth_vec'] = self.up_eth_vec
-        UP['up_SES_vec'] = self.up_SES_vec
-        UP['up_smoker_vec'] = self.up_smoker_vec
-        UP['up_QRisk_vec'] = self.up_QRisk_vec
-        UP['up_HC_takeup_noneligible'] = self.up_HC_takeup_noneligible
-        UP['up_HC_include_diabetes_registers'] = self.up_HC_include_diabetes_registers
-        UP['up_HC_include_CVD_registers'] = self.up_HC_include_CVD_registers
-        UP['up_HC_include_bp_registers'] = self.up_HC_include_bp_registers
-        UP['up_HC_smoker_ref'] = self.up_HC_smoker_ref
-        UP['up_HC_weight_ref']= self.up_HC_weight_ref
-        UP['up_HC_statins_presc_Q20minus'] = self.up_HC_statins_presc_Q20minus
-        UP['up_HC_statins_presc_Q20plus'] = self.up_HC_statins_presc_Q20plus
-        UP['up_HC_aht_presc_Q20minus'] = self.up_HC_aht_presc_Q20minus
-        UP['up_HC_aht_presc_Q20plus'] = self.up_HC_aht_presc_Q20plus
-        UP['up_Weight_comp'] = self.up_Weight_comp
-        UP['up_Statins_comp'] = self.up_Statins_comp
-        UP['up_AHT_comp'] = self.up_AHT_comp
-        UP['up_Smoking_eff'] = self.up_Smoking_eff
-        UP['up_Statins_eff_male'] = self.up_Statins_eff_male
-        UP['up_Statins_eff_female'] = self.up_Statins_eff_female
-        UP['up_Statins_eff_HDL_male'] = self.up_Statins_eff_HDL_male
-        UP['up_Statins_eff_HDL_female'] = self.up_Statins_eff_HDL_female
-
-        UP['up_AHT_eff_age55minus_SBP'] = self.up_AHT_eff_age55minus_SBP
-        UP['up_AHT_eff_age55minus_DBP'] = self.up_AHT_eff_age55minus_DBP
-        UP['up_AHT_eff_age55plus_SBP_male'] = self.up_AHT_eff_age55plus_SBP_male
-        UP['up_AHT_eff_age55plus_SBP_female'] = self.up_AHT_eff_age55plus_SBP_female
-        UP['up_AHT_eff_age55plus_DBP_male'] = self.up_AHT_eff_age55plus_DBP_male
-        UP['up_AHT_eff_age55plus_DBP_female'] = self.up_AHT_eff_age55plus_DBP_female
-
-        # other parameters,remaining unchanged
-        UP['up_CVD_diagnosis_fraction'] = self.up_CVD_diagnosis_fraction
-        UP['up_bp_diagnosis_fraction'] = self.up_bp_diagnosis_fraction
-        UP['up_Smoking_relapsing_rate'] = self.up_Smoking_relapsing_rate
-        UP['up_Statins_dropout_rate'] = self.up_Statins_dropout_rate
-        UP['up_AHT_dropout_rate'] = self.up_AHT_dropout_rate
-        UP['up_physically_active'] = self.up_physically_active
-        UP['up_HC_age_limit'] = self.up_HC_age_limit
-
-        # CJ new
-        UP['up_HC_takeup_rr_prev_att'] = self.up_HC_takeup_rr_prev_att
-        UP['up_HC_takeup_rr_not_prev_att'] = self.up_HC_takeup_rr_not_prev_att
-        UP['up_HC_offer_prev_att'] = self.up_HC_offer_prev_att
-        UP['up_HC_offer_not_prev_att'] = self.up_HC_offer_not_prev_att
-        UP['up_Statins_eff_extra_male'] = self.up_Statins_eff_extra_male
-        UP['up_Statins_eff_extra_female'] = self.up_Statins_eff_extra_female
-        UP['up_Weight_eff'] = self.up_Weight_eff
-
+        self.up_Statins_dropout_rate = np.random.beta(self.parmsu['Statins_dropout_rate']['betaa'], self.parmsu['Statins_dropout_rate']['betab'])
+        self.up_AHT_dropout_rate = np.random.beta(self.parmsu['AHT_dropout_rate']['betaa'], self.parmsu['AHT_dropout_rate']['betab'])
+               
+        UP = {} # save new draw in dictionary of all uncertain parameters.
+        for pn in self.parmsu.keys(): 
+            exec('UP[\'%s\'] = self.up_%s' % (pn,pn))
         self.UP = UP
-
 
 
     def GetUncertainParameters(self):
@@ -380,14 +216,10 @@ class HealthChecksModel:
         return self.UP
 
     def SetUncertainParameter(self, parname, parval):
-        '''updates an uncertain parameter to a new value'''
+        '''updates a parameter to a new value'''
 
+        exec('self.up_%s = parval' % parname)
         self.UP[parname] = parval
-        exec('self.%s = parval' % parname)
-#        try:
-#            print('Parameter %s updated to value %g' % (parname,eval('self.%s' % parname)) )
-#        except:
-#            pass
 
     def GetNumberOfCPUs(self):
         '''returns number of CPUs used for parallel tasks (matching processes)'''
@@ -1245,10 +1077,12 @@ class HealthChecksModel:
 
 
         self.eligible = np.zeros((self.population_size, self.simulation_time),dtype=bool)
-        self.poff = np.zeros((self.population_size, self.simulation_time),dtype=bool)
+#        self.OfferProb = np.zeros((self.population_size, self.simulation_time))
+#        self.UptakeProb = np.zeros((self.population_size, self.simulation_time))
+
         # People offered HC, or attended anyway despite not being eligible
 
-        self.OfferedHC = np.zeros((self.population_size, self.simulation_time))
+        self.OfferedHC = np.zeros((self.population_size, self.simulation_time),dtype=bool)
         # time at which each individual was last offered a HC.
         # -1 if never offered
         self.prev_offer_time = np.zeros((self.population_size), dtype=int) - 1
@@ -1280,6 +1114,8 @@ class HealthChecksModel:
         # saving scaled CVD risks
         self.CVD_risks = np.zeros((self.population_size, self.simulation_time))
         self.CVD_events = np.zeros((self.population_size, self.simulation_time), dtype=bool)
+
+        self.DementiaLateRRs = np.zeros((self.population_size, self.simulation_time))
 
         # scaling factor for AHT treatment:
         self.AHT_prescription_scaling = np.zeros(self.simulation_time)
@@ -2772,10 +2608,10 @@ class HealthChecksModel:
         '''
 
         # evaluate uptake factors
-        # (1) age groups
+        # (1) age groups   (note that eligibility due to age-range is determined in HEALTH CHECKS ASSESSMENT block)
         p_age = np.zeros(self.population_size) #+ 1
 
-        p40 = np.where((self.age[:,t] >= 40) * (self.age[:,t] <50))[0]
+        p40 = np.where((self.age[:,t] <50))[0]
         p_age[p40] = self.up_age_vec[0]
 
         p50 = np.where((self.age[:,t] >= 50) * (self.age[:,t] <60))[0]
@@ -2784,7 +2620,7 @@ class HealthChecksModel:
         p60 = np.where((self.age[:,t] >= 60) * (self.age[:,t] <70))[0]
         p_age[p60] = self.up_age_vec[2]
 
-        p70 = np.where((self.age[:,t] >= 70) * (self.age[:,t] <75))[0]
+        p70 = np.where((self.age[:,t] >= 70))[0]
         p_age[p70] = self.up_age_vec[3]
 
         # (2) gender
@@ -2863,12 +2699,12 @@ class HealthChecksModel:
 
         # extra relative turnup rates (not odds ratios) applied in additional scenarios 
         self.RelTurnupScen = np.zeros(self.population_size) + 1
-        if (self.ses5_extra_uptake > 1): 
-            self.RelTurnupScen[p_s5] = self.ses5_extra_uptake
-        if (self.sm_extra_uptake > 1): 
-            self.RelTurnupScen[p_sm] = self.sm_extra_uptake
-        if (self.q5_extra_uptake > 1): 
-            self.RelTurnupScen[p_q5] = self.q5_extra_uptake
+        if (self.up_ses5_extra_uptake > 1): 
+            self.RelTurnupScen[p_s5] = self.up_ses5_extra_uptake
+        if (self.up_sm_extra_uptake > 1): 
+            self.RelTurnupScen[p_sm] = self.up_sm_extra_uptake
+        if (self.up_q5_extra_uptake > 1): 
+            self.RelTurnupScen[p_q5] = self.up_q5_extra_uptake
 
         # delete internal arrays
         del p_age,p_gender,p_eth,p_smoking,p_nonsm,p_sm,p_ses,p_qrisk,p_s1,p_s2,p_s3,p_s4,p_s5
@@ -3231,7 +3067,6 @@ class HealthChecksModel:
         current_age_capped = current_age.copy()
         current_age_capped[current_age>80] = 80
 
-
         if age_dependent_risk == False:
             rel_risk[male] = self.DEMprob_year_male[current_age_capped[male],:].mean()
             rel_risk[female] = self.DEMprob_year_female[current_age_capped[female],:].mean()
@@ -3244,7 +3079,6 @@ class HealthChecksModel:
             rel_risk[v1] = self.DEMprob_year_male[current_age_capped[v1],0]
             rel_risk[w1] = self.DEMprob_year_female[current_age_capped[w1],0]
 
-
             age_within = (current_age_capped >= self.parms['CAIDE_age_bounds'][0]) * (current_age_capped <= self.parms['CAIDE_age_bounds'][1])
             v3 = male * age_within
             w3 = female * age_within
@@ -3252,19 +3086,21 @@ class HealthChecksModel:
             #rel_risk[w3] = self.DEMprob_year_female[current_age_capped[w3],:].mean()
             rel_risk[v3] = self.DEMprob_year_male[current_age_capped[v3],0]
             rel_risk[w3] = self.DEMprob_year_female[current_age_capped[w3],0]
-
+            
             ##################################
             # if age is above 60,
             # then take CAIDE from age 60, and apply lifetable based incidences
             # scaled by risk factors (ie. everyone stays on percentile)
-
             age_above = current_age_capped >= self.parms['CAIDE_age_bounds'][1]
 #            v2 = male * age_above
 #            w2 = female * age_above
 
-            j_male = (self.age[:,t] >= self.parms['CAIDE_age_bounds'][1]) * (self.gender==1) * (self.alive[:,t]==1)
-            j_female = (self.age[:,t] >= self.parms['CAIDE_age_bounds'][1]) * (self.gender==0) * (self.alive[:,t]==1)
+            # Don't restrict to alive, as this makes the age adjustment dependent on the simulation history, which introduces excessive Monte Carlo error when comparing scenarios.
+            # The age adjustment should be the same for all scenarios, and the difference between scenarios driven only by CAIDE (CJ)
+            j_male = (self.age[:,t] >= self.parms['CAIDE_age_bounds'][1]) * (self.gender==1) #* (self.alive[:,t]==1)
+            j_female = (self.age[:,t] >= self.parms['CAIDE_age_bounds'][1]) * (self.gender==0) #* (self.alive[:,t]==1)
 
+            # ages of individuals above 60
             j_age_male = np.array(self.age[j_male,t],dtype=int)
             j_age_female = np.array(self.age[j_female,t],dtype=int)
 
@@ -3278,6 +3114,7 @@ class HealthChecksModel:
             LT_dem_female[:,0] = self.LT_dementia[:100,0]
             LT_dem_female[:,1] = self.LT_dementia[:100,4]
 
+            # lifetable-derived dementia risks for individuals above 60
             L_male = LT_dem_male[j_age_male,1]
             L_female = LT_dem_female[j_age_female,1]
 
@@ -3290,22 +3127,23 @@ class HealthChecksModel:
             age_above_male[age_above_male<0]=0
             age_above_female[age_above_female<0]=0
 
-            # what is the CAIDE derived risk for those people?
+            # what was the CAIDE derived risk at age 60 for those people?
             C_select_male = self.DementiaRisk[j_male,age_above_male]/100.0
             C_select_female = self.DementiaRisk[j_female,age_above_female]/100.0
 
-            # at a given age, how many are there with one of the 5 risks?
+            # at a given current age>60, how many were there with one of the 5 risks at age 60?
             nC_male = np.zeros((100,5))
             nC_female = np.zeros((100,5))
-#            C = np.unique(self.DementiaRisk[self.DementiaRisk>0])/100.0
+        #            C = np.unique(self.DementiaRisk[self.DementiaRisk>0])/100.0
             C = np.array([1, 1.9, 4.2, 7.4, 16.4]) / 100.0
             
             for a in range(100):
                 for i in range(5):
-                    nC_male[a,i] = (C_select_male[j_age_male==a]==C[i]).sum()
-                    nC_female[a,i] = (C_select_female[j_age_female==a]==C[i]).sum()
+                    nC_male[a,i] = (C_select_male[j_age_male==a] == C[i]).sum()
+                    nC_female[a,i] = (C_select_female[j_age_female==a] == C[i]).sum()
                 #nC[i] = (C_all==C[i]).sum()
-
+                
+            # for each person currently above 60, how many people were there with each of the 5 distinct risks at age 60
             nC_select_male = nC_male[j_age_male]
             nC_select_female = nC_female[j_age_female]
 
@@ -3324,6 +3162,7 @@ class HealthChecksModel:
 
                     rel_risk[j_male] = x_select_male
                     rel_risk[j_female] = x_select_female
+                        
             except:
                 pass
 
@@ -3338,7 +3177,7 @@ class HealthChecksModel:
 
         # delete internal arrays
         del male,female,j_male,j_female,j_age_male,j_age_female,current_age,rem,current_age_capped
-
+        
         return rel_risk, CAIDE_risk
 
 
@@ -3726,12 +3565,16 @@ class HealthChecksModel:
                 self.eligible[:, i] = self.register_filter[:,i] * (self.within_age[:, i] > 0) * (self.alive[:, i] == 1)
 
                 # some people get a HC despite being non-eligible
-                not_eligible = np.where((self.eligible[:,i]==0) * (self.alive[:, i] == 1))[0]
-                n_eligible_other = int(not_eligible.size * self.up_HC_takeup_noneligible)
-                self.eligible_other_idx = rnd.sample(not_eligible,n_eligible_other)
-
+#                not_eligible = np.where((self.eligible[:,i]==0) * (self.alive[:, i] == 1))[0]
+#                n_eligible_other = int(not_eligible.size * self.up_HC_takeup_noneligible)
+#                self.eligible_other = rnd.sample(not_eligible,n_eligible_other)
+#                n_eligible_other = int(self.population_size * self.up_HC_takeup_noneligible)
+#                self.eligible_other = rnd.sample(range(self.population_size), n_eligible_other)
+                r = np.random.random(self.population_size)
+                self.eligible_other = (r < self.up_HC_takeup_noneligible) * (self.alive[:, i] == 1)
+                
                 elig_or_attend_anyway = self.eligible[:,i].copy()
-                elig_or_attend_anyway[self.eligible_other_idx] = 1
+                elig_or_attend_anyway[self.eligible_other] = 1
 
                 # determine how many are attending it based on the switching
                 # probabilities
@@ -3767,7 +3610,7 @@ class HealthChecksModel:
                 poff[prev_accepted==1] = self.up_HC_offer_prev_att
                 poff[prev_declined==1] = self.up_HC_offer_not_prev_att
 
-                self.poff[:,i] = poff 
+#                self.OfferProb[:,i] = poff 
                 offered = r < (self.alive[:,i] * elig_or_attend_anyway * poff)
                 self.OfferedHC[offered, i] = 1
                 ## update last offer time to include people offered HC this time
@@ -3778,17 +3621,27 @@ class HealthChecksModel:
                 pup[prev_declined==1] *= self.up_HC_takeup_rr_not_prev_att
                 targeted_uptake = self.RelTurnupScen.copy() # Extra RRs for targeted subgroups in scenarios.
                 pup *= targeted_uptake
-
                 pup = poff * pup
+                
                 or_uptake = self.RelTurnup.copy() # Apply ORs for attending given eligible
                 odds = pup/(1- pup) * or_uptake
                 pup = odds / (1 + odds)
+#                self.UptakeProb[:,i] = pup
+
                 pup *= rel_uptake
                     
                 att_prob = self.alive[:,i] * elig_or_attend_anyway * pup
 
                 attending = r < att_prob
                 self.Attending[attending, i] = 1
+
+#                id = 2551 - 1
+#                if (i==30):
+#                    print r[id], self.eligible[id], self.eligible_other[id], self.alive[id,i], self.Attending[id, i]
+#                if (i==31):
+#                    print r[id], self.eligible[id], self.eligible_other[id], self.alive[id,i], self.Attending[id, i]
+#                if (i==32):
+#                    print r[id], self.eligible[id], self.eligible_other[id], self.alive[id,i], self.Attending[id, i]
 
                 #############################
                 # TREATMENT
@@ -3915,9 +3768,6 @@ class HealthChecksModel:
                 # also, those who are prescribed AHT are diagnosed for high blood pressure and hence put on bp register
                 self.bp[self.Hypertensives[:,i]==1,i] = 1
 
-
-
-
                 if i<(self.simulation_time-1):
                         # who is put on statins treatment
                         self.on_aht[self.Hypertensives_Offered[:,i] * aht_compliance,(i+1):] = 1
@@ -4017,11 +3867,24 @@ class HealthChecksModel:
             # DEMENTIA
             # compute CAIDE score
             self.CalculateCAIDE(t=i, output=False)
+
             rel_risk,CAIDE_risk = self.GetDementiaRisks(i,age_dependent_risk=True)
+            self.DementiaLateRRs[:,i] = rel_risk
+
+            # Relative risks that are multiplied by age 60 CAIDE to obtain post-age-60 dementia risk
+            # Monte Carlo error in these can be controlled by supplying values obtained from a base-case model run
+            # This ensures that differences between scenarios affect only CAIDE and not these relative risks
+            rr = self.UP.get("DementiaLateRRs")
+            if (rr != None):   # were values supplied from an external model run?
+                rel_risk = rr[:,i]
+            else:
+                rel_risk = self.DementiaLateRRs[:,i] # if not, use values from this run.
+            
             # draw random numbers - whoever is below the relative risk, develops an event next year,
             # based on CAIDE risk score
             dem_risk = rel_risk*CAIDE_risk
             r = np.random.random(self.population_size)
+
             with np.errstate(invalid='ignore'):
                 dem_event = (r<dem_risk) * (self.alive[:,i]==1)
 
@@ -4161,10 +4024,20 @@ class HealthChecksModel:
             self.stroke_mortality = 1 -np.exp(-self.stroke_mortality)
 
             ## Reduce background mortality to compensate for sudden death risk
-            if (self.parms['CVD_background_CFR_reduction']):
-                p_fatal_stroke = cvd_risk * stroke_risk * self.parms['p_strokeevent_is_full'] * self.parms['Stroke_sudden_death']
-                self.stroke_mortality = (self.stroke_mortality - p_fatal_stroke) / (1 - p_fatal_stroke)
-            
+
+            ## Note that cvd_risk is dependent on the scenario, which introduces some unwanted between-scenario differences.
+            ## cvd_risk could go down in an extra-treatment scenario, which could increase the background mortality from stroke. 
+            ## This could lead to people dying from stroke in the extra-treatment scenario but not in the base case.
+            ## Therefore for the purpose of the background mortality adjustment, load CVD risks from base case values to protect from scenario changes. 
+            ## (Or even better would be to get better data on sudden and non-sudden death risks...)
+            cr = self.UP.get("CVD_risks")
+            if (cr != None):   # were values supplied from an external model run?
+                cvd_risk_base = cr[:,i]
+            else:
+                cvd_risk_base = cvd_risk # if not, use values from this run.
+            p_fatal_stroke = cvd_risk_base * stroke_risk * self.up_p_strokeevent_is_full * self.up_Stroke_sudden_death
+            self.stroke_mortality = (self.stroke_mortality - p_fatal_stroke) / (1 - p_fatal_stroke)
+                        
             r = np.random.random(self.population_size)
             STdies = (r<self.stroke_mortality) * (self.Stroke[:,i]==1)
             self.alive[STdies,i:] = 0
@@ -4191,10 +4064,9 @@ class HealthChecksModel:
             self.ihd_mortality = 1 -np.exp(-self.ihd_mortality)
 
             ## Reduce background mortality to compensate for sudden death risk
-            if (self.parms['CVD_background_CFR_reduction']):
-                ihd_risk = 1 - stroke_risk
-                p_fatal_mi = cvd_risk * ihd_risk * self.parms['p_ihdevent_is_mi'] * self.parms['MI_sudden_death']
-                self.ihd_mortality = (self.ihd_mortality - p_fatal_mi) / (1 - p_fatal_mi)
+            ihd_risk = 1 - stroke_risk
+            p_fatal_mi = cvd_risk_base * ihd_risk * self.up_p_ihdevent_is_mi * self.up_MI_sudden_death
+            self.ihd_mortality = (self.ihd_mortality - p_fatal_mi) / (1 - p_fatal_mi)
             
             r = np.random.random(self.population_size)
             Idies = (r<self.ihd_mortality) * (self.IHD[:,i]==1)
@@ -4206,16 +4078,16 @@ class HealthChecksModel:
             ######
             # mortality by sudden death following a CVD event
             r = np.random.random(self.population_size)
-            MIdeath = (r < (self.IHDEvents[:,i] == 1) * self.parms['p_ihdevent_is_mi'] * self.parms['MI_sudden_death'] )
-            strokedeath = (r < (self.StrokeEvents[:,i] == 1) * self.parms['p_strokeevent_is_full'] * self.parms['Stroke_sudden_death'] )
+            MIdeath = (r < (self.IHDEvents[:,i] == 1) * self.up_p_ihdevent_is_mi * self.up_MI_sudden_death )
+            strokedeath = (r < (self.StrokeEvents[:,i] == 1) * self.up_p_strokeevent_is_full * self.up_Stroke_sudden_death )
             nodeath = self.Death.sum(axis=1) == 0
             self.Death[MIdeath*nodeath,i] = 1
             self.Death[strokedeath*nodeath,i] = 1
             self.alive[MIdeath*nodeath,i:] = 0
             self.alive[strokedeath*nodeath,i:] = 0
-            self.CauseOfDeath[MIdeath*nodeath] = 'Stroke'
-            self.CauseOfDeath[strokedeath*nodeath] = 'IHD'
-
+            self.CauseOfDeath[MIdeath*nodeath] = 'IHD'
+            self.CauseOfDeath[strokedeath*nodeath] = 'Stroke'
+            
             # mortality by Dementia
 
             self.dem_mortality = np.zeros(self.population_size)
@@ -4284,8 +4156,9 @@ class HealthChecksModel:
 
             # delete internal arrays
             del r, female_ns, female_s, male_s, male_ns, smoker,bp_high,bp_diagnosed
-            del rel_risk,CAIDE_risk, dem_risk
+            del rel_risk,CAIDE_risk, dem_risk, rr
             del stroke_event,ihd_event, cvd_risk,cvd_event
+            del MIdeath, strokedeath, nodeath, Idies, STdies, OTdies, p_fatal_mi
 
             try:
                 del p_Q20minus, p_Q20plus
@@ -5714,9 +5587,15 @@ class HealthChecksModel:
     def CalculateLY(self):
         self.LY = self.age[self.Death]
 
-
+    ## Relative risks to convert age 60 CAIDE dementia risks to later ages
+    ## Store at the end of this simulation for use in later model runs
+    def SaveDementiaRRs(self):
+        self.UP["DementiaLateRRs"] = self.DementiaLateRRs
+        self.UP["CVD_risks"] = self.CVD_risks
+        
     def Run(self):
         self.Simulate()
         self.CalculateQALY_CVD()
         self.CalculateQALY()
         self.CalculateLY()
+        self.SaveDementiaRRs()

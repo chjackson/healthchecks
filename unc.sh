@@ -7,11 +7,11 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --nodes=5
 #SBATCH --ntasks=20
-#SBATCH --time=1:00:00
+#SBATCH --time=24:00:00
 
 start=`date +%s`
 
-npsa=1000 # number of iterations of probabilistic sensitivity analysis 
+npsa=100 # number of iterations of probabilistic sensitivity analysis 
 n_cpus=4 # number of CPUs to use for within-run 
 nruns=20 # number of model runs to do in parallel 
 nbatch=$((npsa/nruns)) # number of parallel batches to run serially 
@@ -46,9 +46,6 @@ wait
 end=`date +%s`
 runtime=$((end-start))
 echo "RUN TIME: $runtime SECONDS"
-
-### Base case
-### 1000 runs of 25000, 4 cores per run, 20 runs in parallel, 6501 seconds
 
 
 

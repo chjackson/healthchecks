@@ -11,7 +11,7 @@ import getresults as gr
 st = 70
 ps = 250000
 n_cpus = 4
-prefix = "results/papertest/base"
+prefix = os.path.expanduser('~/scratch/hc/healthchecks/results/paperjun/base')
 randpars = False
 
 ## used for running a large population in a set of batches

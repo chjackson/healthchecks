@@ -186,23 +186,24 @@ def FirstHC(H1):
 def PostHCOuts(H, H1):
     ''' 10-year improvement in QRisk and other factors, given by HC '''
     att = H1.Attending.sum(axis=1)>0
-    HC1 = FirstHC(H1)[att]
-    qcon =  H.QRisk[att, HC1 + 10] - H.QRisk[att, HC1]   # change in qrisk over 10 years, neg good, will be pos as increases with age 
-    qhc =   H1.QRisk[att, HC1 + 10] - H1.QRisk[att, HC1]
+    HC0 = FirstHC(H1)[att]
+    HC10 = np.fmin(HC0 + 10, 69) # for oldest, censor 10 year improvement at max age.
+    qcon =  H.QRisk[att, HC10] - H.QRisk[att, HC0]   # change in qrisk over 10 years, neg good, will be pos as increases with age 
+    qhc =   H1.QRisk[att, HC10] - H1.QRisk[att, HC0]
     qdiff = qhc - qcon                # lower change under hc, negative is good 
-    scon =  H.q_sbp[att, HC1 + 10] - H.q_sbp[att, HC1]
-    shc =   H1.q_sbp[att, HC1 + 10] - H1.q_sbp[att, HC1]
+    scon =  H.q_sbp[att, HC10] - H.q_sbp[att, HC0]
+    shc =   H1.q_sbp[att, HC10] - H1.q_sbp[att, HC0]
     sdiff = shc - scon 
-    dcon =  H.dia[att, HC1 + 10] - H.dia[att, HC1]
-    dhc =   H1.dia[att, HC1 + 10] - H1.dia[att, HC1]
+    dcon =  H.dia[att, HC10] - H.dia[att, HC0]
+    dhc =   H1.dia[att, HC10] - H1.dia[att, HC0]
     ddiff = dhc - dcon 
-    ccon =  H.chol[att, HC1 + 10] - H.chol[att, HC1]
-    chc =   H1.chol[att, HC1 + 10] - H1.chol[att, HC1]
+    ccon =  H.chol[att, HC10] - H.chol[att, HC0]
+    chc =   H1.chol[att, HC10] - H1.chol[att, HC0]
     cdiff = chc - ccon 
     
     posthcmeans = [ qdiff.mean(), sdiff.mean(), ddiff.mean(), cdiff.mean() ] 
     posthcsds = [ qdiff.std(), sdiff.std(), ddiff.std(), cdiff.std() ] 
-    
+            
     return np.column_stack((posthcmeans, posthcsds))
 
 

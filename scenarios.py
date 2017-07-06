@@ -2,6 +2,9 @@
 # Results to extract defined in getresults.py 
 # Produces CSVs which are then converted to results tables in tables.r 
 
+# note this is out of date with some of the scenario definitions
+# submitted version of the paper used those in scenarios_unc.py
+
 import os
 import sys
 import HC_main as hc
@@ -12,7 +15,7 @@ st = 70
 ps = 25000
 n_cpus = 4
 
-prefix = "results/papermar/scen"
+prefix = "results/paperapr/scen"
 if (len(sys.argv) > 1):
     run = int(sys.argv[1])
 else: run = 0
@@ -31,11 +34,33 @@ N = np.zeros((nsc, npopsn), dtype=int) # subpopulation sizes and other count dat
 P = np.zeros((nsc, noutsp, 2)) # mean and SD together 
 N[...,0] = ps
 
+if (run==1):
+    try:
+        os.remove("%s_mean.csv" % (prefix))
+        os.remove("%s_SD.csv" % (prefix))
+        os.remove("%s_N.csv" % (prefix))
+        os.remove("%s_post.csv" % (prefix))
+        os.remove("%s_pars.csv" % (prefix))
+    except OSError:
+        pass
+
 def SaveResults(M, S, N, P, nsc, npops, nouts, prefix):
-    np.savetxt("%s_mean_%s.csv" % (prefix,run), M.reshape((nsc,npops*nouts)) , delimiter=",") # rows are populations (eligible, treated...), cols are outputs (LY, QALY...)
-    np.savetxt("%s_SD_%s.csv"   % (prefix,run), S.reshape((nsc,npops*nouts)), delimiter=",") #
-    np.savetxt("%s_N_%s.csv"    % (prefix,run), N, fmt="%d", delimiter=",") #
-    np.savetxt("%s_post_%s.csv" % (prefix,run), P.reshape((nsc,noutsp*2)), fmt="%s", delimiter=",")
+    # arrange results as one row per scenario
+    # block of results from current run appended to previous runs
+    runid = np.array([run]*nsc) # vector of run IDs, first column of result block
+    Msave = np.column_stack((runid, M.reshape((nsc,npops*nouts))))
+    Ssave = np.column_stack((runid, S.reshape((nsc,npops*nouts))))
+    Nsave = np.column_stack((runid, N))
+    Psave = np.column_stack((runid, P.reshape((nsc,noutsp*2))))
+
+    with open("%s_mean.csv" % (prefix), 'a') as f:
+        np.savetxt(f, Msave, delimiter=",")
+    with open("%s_SD.csv" % (prefix), 'a') as f:
+        np.savetxt(f, Ssave, delimiter=",")
+    with open("%s_N.csv" % (prefix), 'a') as f:
+        np.savetxt(f, Nsave, delimiter=",", fmt="%d")
+    with open("%s_post.csv" % (prefix), 'a') as f:
+        np.savetxt(f, Psave, delimiter=",")
     
 ## Without HC
 H = hc.HealthChecksModel(population_size=ps, simulation_time=st, HealthChecks=False, nprocs=n_cpus, randseed=run, baseage_min=baseage_min, baseage_max=baseage_max)
@@ -49,7 +74,6 @@ def initmodels():
 def runmodels(H1, H2, H0, M, S, N, P, r):
     H2.Run()
     M[r,],S[r,],N[r,],P[r,] = gr.GetResults_paper(H1, H2, H0, M[r,], S[r,], N[r,], P[r,])
-    SaveResults(M, S, N, P, nsc, npops, nouts, prefix)
     r += 1
     return M, S, N, P, r
 
@@ -63,24 +87,24 @@ M, S, N, P, r = runmodels(H, H1, H, M, S, N, P, r)
 ## All other scenarios: relative to base case
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_include_bp_registers', 1)
+H2.SetUncertainParameter('HC_include_bp_registers', 1)
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_age_limit', [50, 74.9])
+H2.SetUncertainParameter('HC_age_limit', [50, 74.9])
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_age_limit', [40, 80.9])
+H2.SetUncertainParameter('HC_age_limit', [40, 80.9])
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_age_limit', [50, 80.9])
+H2.SetUncertainParameter('HC_age_limit', [50, 80.9])
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
 H2 = initmodels()
-takeup = H2.GetUncertainParameters()['up_HC_takeup']
-H2.SetUncertainParameter('up_HC_takeup', takeup*1.3)
+takeup = H2.GetUncertainParameters()['HC_takeup']
+H2.SetUncertainParameter('HC_takeup', takeup*1.3)
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
 H2 = initmodels()
@@ -96,64 +120,65 @@ H2.SetUncertainParameter('q5_extra_uptake', 1.3)
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
 H2 = initmodels()
-patt = H2.GetUncertainParameters()['up_HC_offer_not_prev_att']
-H2.SetUncertainParameter('up_HC_offer_not_prev_att', patt*1.3)
+patt = H2.GetUncertainParameters()['HC_offer_not_prev_att']
+H2.SetUncertainParameter('HC_offer_not_prev_att', patt*1.3)
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
 # attenders keep attending.  Compare with no HC, not with current practice
 Hatt = initmodels()
-Hatt.SetUncertainParameter('up_HC_takeup_rr_prev_att', 0.7/takeup)
-Hatt.SetUncertainParameter('up_HC_takeup_rr_not_prev_att', 0.3/takeup)
+Hatt.SetUncertainParameter('HC_takeup_rr_prev_att', 0.7/takeup)
+Hatt.SetUncertainParameter('HC_takeup_rr_not_prev_att', 0.3/takeup)
 M, S, N, P, r = runmodels(H, Hatt, H, M, S, N, P, r)
 
 # attenders keep attending, and target non-attenders.  Compare with new base 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_takeup_rr_prev_att', 0.7/takeup)
-H2.SetUncertainParameter('up_HC_takeup_rr_not_prev_att', 0.3/takeup)
-H2.SetUncertainParameter('up_HC_offer_not_prev_att', patt*1.3)
+H2.SetUncertainParameter('HC_takeup_rr_prev_att', 0.7/takeup)
+H2.SetUncertainParameter('HC_takeup_rr_not_prev_att', 0.3/takeup)
+H2.SetUncertainParameter('HC_offer_not_prev_att', patt*1.3)
 M, S, N, P, r = runmodels(Hatt, H2, H, M, S, N, P, r)
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_statins_presc_Q20minus', 0.05) # was 2%
-H2.SetUncertainParameter('up_HC_statins_presc_Q20plus', 0.36)  # was 14%
+H2.SetUncertainParameter('HC_statins_presc_Q20minus', 0.05) # was 2%
+H2.SetUncertainParameter('HC_statins_presc_Q20plus', 0.36)  # was 14%
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_aht_presc_Q20minus', 0.04) # was 0.0154
-H2.SetUncertainParameter('up_HC_aht_presc_Q20plus', 0.06)  # was 0.0248
+H2.SetUncertainParameter('HC_aht_presc_Q20minus', 0.04) # was 0.0154
+H2.SetUncertainParameter('HC_aht_presc_Q20plus', 0.06)  # was 0.0248
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_smoker_ref', 0.09) # was 0.036
+H2.SetUncertainParameter('HC_smoker_ref', 0.09) # was 0.036
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_weight_ref', 0.6875) # was 0.275
+H2.SetUncertainParameter('HC_weight_ref', 0.6875) # was 0.275
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_statins_presc_Q20minus', 0.05) # was 2%
-H2.SetUncertainParameter('up_HC_statins_presc_Q20plus', 0.36)  # was 14%
-H2.SetUncertainParameter('up_HC_aht_presc_Q20minus', 0.04) # was 0.0154
-H2.SetUncertainParameter('up_HC_aht_presc_Q20plus', 0.06)  # was 0.0248
-H2.SetUncertainParameter('up_HC_smoker_ref', 0.09) # was 0.036
-H2.SetUncertainParameter('up_HC_weight_ref', 0.6875) # was 0.275
+H2.SetUncertainParameter('HC_statins_presc_Q20minus', 0.05) # was 2%
+H2.SetUncertainParameter('HC_statins_presc_Q20plus', 0.36)  # was 14%
+H2.SetUncertainParameter('HC_aht_presc_Q20minus', 0.04) # was 0.0154
+H2.SetUncertainParameter('HC_aht_presc_Q20plus', 0.06)  # was 0.0248
+H2.SetUncertainParameter('HC_smoker_ref', 0.09) # was 0.036
+H2.SetUncertainParameter('HC_weight_ref', 0.6875) # was 0.275
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
 # high treatment, uptake, eligibility
 H2 = initmodels()
 # eligibility
-H2.SetUncertainParameter('up_HC_include_bp_registers', 1)
+H2.SetUncertainParameter('HC_include_bp_registers', 1)
 # uptake
-H2.SetUncertainParameter('up_HC_takeup', takeup*1.3)
+H2.SetUncertainParameter('HC_takeup', takeup*1.3)
 # treatment
-H2.SetUncertainParameter('up_HC_statins_presc_Q20minus', 0.05) # was 2%
-H2.SetUncertainParameter('up_HC_statins_presc_Q20plus', 0.36)  # was 14%
-H2.SetUncertainParameter('up_HC_aht_presc_Q20minus', 0.04) # was 0.0154
-H2.SetUncertainParameter('up_HC_aht_presc_Q20plus', 0.06)  # was 0.0248
-H2.SetUncertainParameter('up_HC_smoker_ref', 0.09) # was 0.036
-H2.SetUncertainParameter('up_HC_weight_ref', 0.6875) # was 0.275
+H2.SetUncertainParameter('HC_statins_presc_Q20minus', 0.05) # was 2%
+H2.SetUncertainParameter('HC_statins_presc_Q20plus', 0.36)  # was 14%
+H2.SetUncertainParameter('HC_aht_presc_Q20minus', 0.04) # was 0.0154
+H2.SetUncertainParameter('HC_aht_presc_Q20plus', 0.06)  # was 0.0248
+H2.SetUncertainParameter('HC_smoker_ref', 0.09) # was 0.036
+H2.SetUncertainParameter('HC_weight_ref', 0.6875) # was 0.275
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
 
+SaveResults(M, S, N, P, nsc, npops, nouts, prefix)
 
 assert r == nsc

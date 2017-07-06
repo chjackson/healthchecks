@@ -92,12 +92,20 @@ c(paste0('up_age_vec',1:4),
   'up_HC_weight_ref',
   'up_HC_takeup_rr_prev_att')
 
-fixedpars <- c("up_HC_offer_not_prev_att", "up_HC_takeup", "up_Statins_eff_extra_female", 
-               "up_HC_include_bp_registers", "up_HC_offer_prev_att", "up_HC_include_CVD_registers", 
+fixedpars <- c("up_HC_offer_not_prev_att",
+               "up_HC_takeup",
+               "up_HC_include_bp_registers",
+               "up_HC_offer_prev_att", "up_HC_include_CVD_registers", 
                "up_bp_diagnosis_fraction", "up_HC_include_diabetes_registers", 
-               "up_Statins_dropout_rate", "up_AHT_dropout_rate", "up_Statins_eff_extra_male", 
                "up_CVD_diagnosis_fraction", "up_HC_age_limit1", "up_HC_age_limit2", 
                "up_Smoking_relapsing_rate", "up_HC_offered", "up_physically_active", 
-               "up_HC_takeup_rr_not_prev_att", "up_SES_vec5", "up_HC_takeup_rr_prev_att")
+               "up_HC_takeup_rr_not_prev_att", "up_HC_takeup_rr_prev_att")
 
-## 63 parameters in this array, but only 43 uncertain parameters 
+## Some parameters in this array are fixed. 
+## Some of the fixed ones surely have uncertainty in them. 
+## and are learnable with more research: 
+
+## 5% yearly dropout rates for statins and AHTs (done now) 
+## extra statins effects beyond chol lowering  (done now) 
+## yearly rate of relapsing after quitting smoking 
+## yearly proportion of CVD / high BP events diagnosed 

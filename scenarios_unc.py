@@ -5,9 +5,9 @@ import numpy as np
 import getresults as gr
 
 st = 70
-ps = 25000
+ps = 200000
 n_cpus = 4
-prefix = "results/papermar/unc"
+prefix = os.path.expanduser('~/scratch/hc/healthchecks/results/paperjun/unc')
 randpars = True
 
 ## used for running a large population in a set of batches
@@ -89,104 +89,136 @@ M, S, N, P, r = runmodels(H, H1, H, M, S, N, P, r)
 ## All other scenarios: relative to base case
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_include_bp_registers', 1)
+H2.SetUncertainParameter('HC_include_bp_registers', 1)
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_age_limit', [50, 74.9])
+H2.SetUncertainParameter('HC_age_limit', [50, 74.9])
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_age_limit', [40, 80.9])
+H2.SetUncertainParameter('HC_age_limit', [40, 79.9])
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_age_limit', [50, 80.9])
+H2.SetUncertainParameter('HC_age_limit', [50, 79.9])
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
-takeup = H2.GetUncertainParameters()['up_HC_takeup']
-H2.SetUncertainParameter('up_HC_takeup', takeup*1.3)
+takeup = H2.up_HC_takeup
+H2.SetUncertainParameter('HC_takeup', takeup*1.3)
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
 H2.SetUncertainParameter('ses5_extra_uptake', 1.3)
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
 H2.SetUncertainParameter('sm_extra_uptake', 1.3)
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
 H2.SetUncertainParameter('q5_extra_uptake', 1.3)
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
-patt = H2.GetUncertainParameters()['up_HC_offer_not_prev_att']
-H2.SetUncertainParameter('up_HC_offer_not_prev_att', patt*1.3)
+patt = H2.up_HC_offer_not_prev_att
+H2.SetUncertainParameter('HC_offer_not_prev_att', patt*1.3)
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 # attenders keep attending.  Compare with no HC, not with current practice
 Hatt = initmodels()
-Hatt.SetUncertainParameter('up_HC_takeup_rr_prev_att', 0.7/takeup)
-Hatt.SetUncertainParameter('up_HC_takeup_rr_not_prev_att', 0.3/takeup)
+Hatt.SetUncertainParameter('HC_takeup_rr_prev_att', 0.7/takeup)
+Hatt.SetUncertainParameter('HC_takeup_rr_not_prev_att', 0.3/takeup)
 M, S, N, P, r = runmodels(H, Hatt, H, M, S, N, P, r)
 
 # attenders keep attending, and target non-attenders.  Compare with new base 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_takeup_rr_prev_att', 0.7/takeup)
-H2.SetUncertainParameter('up_HC_takeup_rr_not_prev_att', 0.3/takeup)
-H2.SetUncertainParameter('up_HC_offer_not_prev_att', patt*1.3)
+H2.SetUncertainParameter('HC_takeup_rr_prev_att', 0.7/takeup)
+H2.SetUncertainParameter('HC_takeup_rr_not_prev_att', 0.3/takeup)
+H2.SetUncertainParameter('HC_offer_not_prev_att', patt*1.3)
 M, S, N, P, r = runmodels(Hatt, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_statins_presc_Q20minus', 0.05) # was 2%
-H2.SetUncertainParameter('up_HC_statins_presc_Q20plus', 0.36)  # was 14%
+H2.SetUncertainParameter('HC_statins_presc_Q20minus', 0.05) # was 2%
+H2.SetUncertainParameter('HC_statins_presc_Q20plus', 0.36)  # was 14%
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_aht_presc_Q20minus', 0.04) # was 0.0154
-H2.SetUncertainParameter('up_HC_aht_presc_Q20plus', 0.06)  # was 0.0248
+H2.SetUncertainParameter('HC_aht_presc_Q20minus', 0.04) # was 0.0154
+H2.SetUncertainParameter('HC_aht_presc_Q20plus', 0.06)  # was 0.0248
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_smoker_ref', 0.09) # was 0.036
+H2.SetUncertainParameter('HC_smoker_ref', 0.09) # was 0.036
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_weight_ref', 0.6875) # was 0.275
+H2.SetUncertainParameter('HC_weight_ref', 0.6875) # was 0.275
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 H2 = initmodels()
-H2.SetUncertainParameter('up_HC_statins_presc_Q20minus', 0.05) # was 2%
-H2.SetUncertainParameter('up_HC_statins_presc_Q20plus', 0.36)  # was 14%
-H2.SetUncertainParameter('up_HC_aht_presc_Q20minus', 0.04) # was 0.0154
-H2.SetUncertainParameter('up_HC_aht_presc_Q20plus', 0.06)  # was 0.0248
-H2.SetUncertainParameter('up_HC_smoker_ref', 0.09) # was 0.036
-H2.SetUncertainParameter('up_HC_weight_ref', 0.6875) # was 0.275
+H2.SetUncertainParameter('HC_statins_presc_Q20minus', 0.05) # was 2%
+H2.SetUncertainParameter('HC_statins_presc_Q20plus', 0.36)  # was 14%
+H2.SetUncertainParameter('HC_aht_presc_Q20minus', 0.04) # was 0.0154
+H2.SetUncertainParameter('HC_aht_presc_Q20plus', 0.06)  # was 0.0248
+H2.SetUncertainParameter('HC_smoker_ref', 0.09) # was 0.036
+H2.SetUncertainParameter('HC_weight_ref', 0.6875) # was 0.275
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 # high treatment, uptake, eligibility
 H2 = initmodels()
 # eligibility
-H2.SetUncertainParameter('up_HC_include_bp_registers', 1)
+H2.SetUncertainParameter('HC_include_bp_registers', 1)
 # uptake
-H2.SetUncertainParameter('up_HC_takeup', takeup*1.3)
+H2.SetUncertainParameter('HC_takeup', takeup*1.3)
 # treatment
-H2.SetUncertainParameter('up_HC_statins_presc_Q20minus', 0.05) # was 2%
-H2.SetUncertainParameter('up_HC_statins_presc_Q20plus', 0.36)  # was 14%
-H2.SetUncertainParameter('up_HC_aht_presc_Q20minus', 0.04) # was 0.0154
-H2.SetUncertainParameter('up_HC_aht_presc_Q20plus', 0.06)  # was 0.0248
-H2.SetUncertainParameter('up_HC_smoker_ref', 0.09) # was 0.036
-H2.SetUncertainParameter('up_HC_weight_ref', 0.6875) # was 0.275
+H2.SetUncertainParameter('HC_statins_presc_Q20minus', 0.05) # was 2%
+H2.SetUncertainParameter('HC_statins_presc_Q20plus', 0.36)  # was 14%
+H2.SetUncertainParameter('HC_aht_presc_Q20minus', 0.04) # was 0.0154
+H2.SetUncertainParameter('HC_aht_presc_Q20plus', 0.06)  # was 0.0248
+H2.SetUncertainParameter('HC_smoker_ref', 0.09) # was 0.036
+H2.SetUncertainParameter('HC_weight_ref', 0.6875) # was 0.275
+H2.SetUncertainParameter('HC_age_limit', [40, 79.9]) # was 40,74
 M, S, N, P, r = runmodels(H1, H2, H, M, S, N, P, r)
+H2.ReleaseMemory()
 
 SaveResults(M, S, N, P, nsc, npops, nouts, prefix)
 
 # save parameter values for current iteration
+
 UP = H.GetUncertainParameters()
+del UP['DementiaLateRRs']
+del UP['CVD_risks']
+par_names = np.array(UP.keys(), dtype=str).reshape(1, len(UP))
 par_vals = [ v for v in UP.values() ]
+par_sizes = [ np.array(v).size for v in UP.values() ]
+# create vector of parameter names for the CSV header
+namsrep = np.repeat(par_names, par_sizes)
+ind = np.hstack( [ v for v in map(range, par_sizes) ] ) + 1
+namsrep1 = []
+for i in xrange(len(namsrep)):
+    namsrep1.append(namsrep[i] + str(ind[i]))
+namsrep1 = np.array(namsrep1, dtype=str).reshape(1, len(namsrep1))
+
 with open("%s_pars.csv" % (prefix), 'a') as f:
+    if (run==1):
+        np.savetxt(f, namsrep1, delimiter=",", fmt="%s")
     pars = np.hstack(par_vals)
     pars = pars.reshape((1, pars.size))
     np.savetxt(f, pars, delimiter=",")

@@ -8,16 +8,17 @@ containing all parameters used by the main model:
 
 - internal parameters which are not changeable unless for a good reason (eg. values for QRISK calculation)
 - uncertain parameters (ie parameters which are observed with a CI)
-- assumed values (eg threshold for BP to diagnose high blood pressure)
+- assumed values (eg fraction of CVD events diagnosed)
 
-@author: arno
+@author: Arno Steinacher and Chris Jackson
 """
 
 
 
 import numpy as np
 
-P = {} # parameter dictionary
+P = {} # parameter dictionary: point estimates 
+PU = {} # standard errors or prior parameters defining uncertainty distribution
 
 # global HC parameters
 P['HC_offered'] = 0.197 # offered HC among eligible in 2014/15
@@ -30,12 +31,12 @@ P['HC_age_limit'] = [40, 74] # min / max age for HC eligibility
 
 #############################################################
 # HC uptake odds ratios 
-P['gender'] = np.array([1, 1.08158])
-P['age'] = np.array([0.6266264, 1, 1.508133, 1.653677])
-P['ethnicity'] = np.array([1, 1.0288336, 0.9912068,  0.8741651])
-P['SES'] = np.array([1, 0.9742240, 0.9871075, 1.0066707, 1.2491194])
-P['smoker'] = np.array([1, 0.7436315])
-P['QR'] = np.array([0.6427019, 1, 1.5406470, 1.8957039, 2.3402212])
+P['gender_vec'] = np.array([1, 1.08158])
+P['age_vec'] = np.array([0.6266264, 1, 1.508133, 1.653677])
+P['eth_vec'] = np.array([1, 1.0288336, 0.9912068,  0.8741651])
+P['SES_vec'] = np.array([1, 0.9742240, 0.9871075, 1.0066707, 1.2491194])
+P['smoker_vec'] = np.array([1, 0.7436315])
+P['QRisk_vec'] = np.array([0.6427019, 1, 1.5406470, 1.8957039, 2.3402212])
 
 #############################################################
 # HC uptake extra relative rates (not odds ratios) in particular groups
@@ -48,27 +49,24 @@ P['q5_extra_uptake'] = 1
 # HC uptake log odds ratios and SEs on the log scale
 P['gender_log'] = np.array([0.0, 0.07842257])
 P['age_log'] = np.array([-0.4674048,  0.0,  0.4108643,  0.5025921 ])
-P['ethnicity_log'] = np.array([ 0.0,  0.028425776, -0.008832112, -0.134486029 ])
+P['eth_log'] = np.array([ 0.0,  0.028425776, -0.008832112, -0.134486029 ])
 P['SES_log'] = np.array([ 0.0, -0.026114027, -0.012976328,  0.006648585,  0.222438803 ])
 P['smoker_log'] = np.array([ 0.0, -0.2962096  ])
-P['QR_log'] = np.array([-0.4420743,  0.0,  0.4322024,  0.6395902,  0.8502454  ])
+P['QRisk_log'] = np.array([-0.4420743,  0.0,  0.4322024,  0.6395902,  0.8502454  ])
 
-P['gender_selog'] = np.array([ 0.004716215 , 0.004629377 ])
-P['age_selog'] = np.array([ 0.005658008, 0.005819362, 0.006490005, 0.051974600 ])
-P['ethnicity_selog'] = np.array([ 0.003616423, 0.012766544, 0.014835230, 0.015422309 ])
-P['SES_selog'] = np.array([0.007420764, 0.007464298, 0.007441611, 0.007416301, 0.007145419 ])
-P['smoker_selog'] = np.array([ 0.003634693 , 0.006023610 ])
-P['QR_selog'] = np.array([ 0.007592940, 0.007950855, 0.008972403, 0.010376484, 0.010375860])
+PU['gender_log'] = {'se': np.array([ 0.004716215 , 0.004629377 ]) }
+PU['age_log'] = {'se': np.array([ 0.005658008, 0.005819362, 0.006490005, 0.051974600 ]) }
+PU['eth_log'] = {'se': np.array([ 0.003616423, 0.012766544, 0.014835230, 0.015422309 ]) }
+PU['SES_log'] = {'se': np.array([0.007420764, 0.007464298, 0.007441611, 0.007416301, 0.007145419 ]) }
+PU['smoker_log'] = {'se': np.array([ 0.003634693 , 0.006023610 ]) }
+PU['QRisk_log'] = {'se': np.array([ 0.007592940, 0.007950855, 0.008972403, 0.010376484, 0.010375860])}
 
 
 #############################################################
 # takeup among noneligible people based on chronic condition
 
 P['HC_takeup_noneligible'] = 0.05 # percentage of noneligible taking up HC / year
-P['HC_takeup_noneligible95'] = 0.02 #  95 % belief
-P['HC_takeup_noneligible_betaa'] = 6.706576
-P['HC_takeup_noneligible_betab'] = 124.044341
-
+PU['HC_takeup_noneligible'] = {'l95': 0.02, 'betaa': 6.706576, 'betab': 124.044341}
 
 # takeup among people on diabetes, bp and CVD registers
 P['HC_include_diabetes_registers'] = False
@@ -82,137 +80,110 @@ P['HC_include_bp_registers'] = False
 # (1) who gets treated, expressed as proportions of whole population, not percent
 
 # smoker referral to smoking cessation
-P['HC_smoker_referral_rate'] = 0.036
-P['HC_smoker_referral95'] = 0.033
-P['HC_smoker_referral_betaa'] = 511.73
-P['HC_smoker_referral_betab'] = 13681.49
+P['HC_smoker_ref'] = 0.036
+PU['HC_smoker_ref'] = {'l95': 0.033, 'betaa' :  511.73, 'betab' :  13681.49}
 
 # referral to weight management
 # for people with BMI >= 30
-P['HC_weight_referral_rate'] = 0.275
-P['HC_weight_referral95'] = 0.269
-P['HC_weight_referral_betaa'] = 5810.977
-P['HC_weight_referral_betab'] = 15280.544 
+P['HC_weight_ref'] = 0.275
+PU['HC_weight_ref'] = {'l95': 0.269, 'betaa' :  5810.977, 'betab' :  15280.544}
 
 # proportion of QRisk individuals receiving statins
 # for QRisk lower than 20
-P['HC_Q20minus_statins'] = 0.0205
-P['HC_Q20minus_statins95'] = 0.0197
-P['HC_Q20minus_statins_betaa'] = 2423.776
-P['HC_Q20minus_statins_betab'] = 115762.264
+P['HC_statins_presc_Q20minus'] = 0.0205
+PU['HC_statins_presc_Q20minus'] = {'l95': 0.0197, 'betaa' :  2423.776, 'betab' :  115762.264}
 
 # for QRisk higher than 20
-P['HC_Q20plus_statins'] = 0.1423
-P['HC_Q20plus_statins95'] = 0.1371
-P['HC_Q20plus_statins_betaa'] = 2429.835
-P['HC_Q20plus_statins_betab'] = 14608.207
+P['HC_statins_presc_Q20plus'] = 0.1423
+PU['HC_statins_presc_Q20plus'] = {'l95': 0.1371, 'betaa' :  2429.835, 'betab' :  14608.207}
 
 # proportion of people with high blood presure receiving antihypertensives
 # for QRisk lower than 20
-P['HC_Q20minus_aht'] = 0.0154
-P['HC_Q20minus_aht95'] = 0.0146
-P['HC_Q20minus_aht_betaa'] = 1365.815
-P['HC_Q20minus_aht_betab'] = 87287.746
+P['HC_aht_presc_Q20minus'] = 0.0154
+PU['HC_aht_presc_Q20minus'] = {'l95' :  0.0146, 'betaa' :  1365.815, 'betab' :  87287.746}
 
 # for QRisk higher than 20
-P['HC_Q20plus_aht'] = 0.0248
-P['HC_Q20plus_aht95'] = 0.0205
-P['HC_Q20plus_aht_betaa'] = 113.7808
-P['HC_Q20plus_aht_betab'] = 4463.3501
+P['HC_aht_presc_Q20plus'] = 0.0248
+PU['HC_aht_presc_Q20plus'] =  {'l95' :  0.0205, 'betaa' :  113.7808, 'betab' :  4463.3501}
 
 
 ##########################################################
 # (2) Compliance rates
 
-P['Weight_compliance'] = 0.5 # from Aveyard
-P['Weight_compliance95'] = 0.3 # big uncertainty - from belief.
-P['Weight_compliance_betaa'] = 11.25982
-P['Weight_compliance_betab'] = 11.01507
+P['Weight_comp'] = 0.5 # from Aveyard.    # big uncertainty - from belief.
+PU['Weight_comp'] =  {'l95':  0.3, 'betaa':  11.25982, 'betab':  11.01507}
 
-P['Statins_compliance'] = 0.5
-P['Statins_compliance95'] = 0.4
-P['Statins_compliance_betaa'] = 47.29982
-P['Statins_compliance_betab'] = 47.08141
+P['Statins_comp'] = 0.5
+PU['Statins_comp'] = {'l95': 0.4, 'betaa': 47.29982, 'betab': 47.08141}
 
-P['AHT_compliance'] = 0.55 # proportion taking up AHTs
-P['AHT_compliance95'] = 0.45
-P['AHT_compliance_betaa'] = 52.55069
-P['AHT_compliance_betab'] = 43.80485
+P['AHT_comp'] = 0.55 # proportion taking up AHTs
+PU['AHT_comp'] = {'l95': 0.45, 'betaa': 52.55069, 'betab': 43.80485}
 
 
 ############################################################
 # (3) Treatment effectiveness
 
 P['Smoking_eff'] = 0.15 # proportions quitting at 1 year
-P['Smoking_eff95'] = 0.131
-P['Smoking_eff_betaa'] = 192.5715
-P['Smoking_eff_betab'] = 1080.4478
+PU['Smoking_eff'] = {'l95': 0.131, 'betaa': 192.5715, 'betab': 1080.4478}
 
 # BMI change after weight management
 P['Weight_eff'] = -1.5
-P['Weight_eff_std'] = 0.007 
+PU['Weight_eff'] = {'std': 0.007}
 
 # Statins effectiveness
 # as measured as reduction in total cholesterol at 1 year
 P['Statins_eff_male'] = -1.22
-P['Statins_eff_male95'] = -1.26
-P['Statins_eff_male_std'] = (P['Statins_eff_male'] - P['Statins_eff_male95']) / 1.96
+PU['Statins_eff_male'] = {'l95': -1.26}
+PU['Statins_eff_male']['std'] = (P['Statins_eff_male'] - PU['Statins_eff_male']['l95']) / 1.96
 
 P['Statins_eff_female'] = -1.16
-P['Statins_eff_female95'] = -1.23
-P['Statins_eff_female_std'] = (P['Statins_eff_female'] - P['Statins_eff_female95']) / 1.96
+PU['Statins_eff_female'] = {'l95': -1.23}
+PU['Statins_eff_female']['std'] = (P['Statins_eff_female'] - PU['Statins_eff_female']['l95']) / 1.96
 
 # also include effect of Statins on HDL (from CTC 2015, email from authors)
 P['Statins_eff_HDL_male'] = 0.04
-P['Statins_eff_HDL_male_std'] = 0.006
+PU['Statins_eff_HDL_male'] = {'std': 0.006}
 
 P['Statins_eff_HDL_female'] = 0.036
-P['Statins_eff_HDL_female_std'] = 0.012
+PU['Statins_eff_HDL_female'] = {'std': 0.012}
 
 # Extra HR for effect of statins on top of totchol/HDL reduction
 P['Statins_eff_extra_male'] =  0.82
+P['Statins_logeff_extra_male'] =  np.log(P['Statins_eff_extra_male'])
+PU['Statins_logeff_extra_male'] =  {'std': 0.03}
 P['Statins_eff_extra_female'] = 0.87
+P['Statins_logeff_extra_female'] =  np.log(P['Statins_eff_extra_female'])
+PU['Statins_logeff_extra_female'] =  {'std': 0.08}
 
 # Antihypertensive effectiveness
 
 # age < 55 years, assume use ACEI
 # reduction in systolic blood pressure
 P['AHT_eff_age55minus_SBP'] = -6.29
-P['AHT_eff_age55minus_SBP95'] = -9.26
-P['AHT_eff_age55minus_SBP_std'] = (P['AHT_eff_age55minus_SBP'] - P['AHT_eff_age55minus_SBP95']) / 1.96
+PU['AHT_eff_age55minus_SBP'] = {'l95': -9.26}
+PU['AHT_eff_age55minus_SBP']['std'] = (P['AHT_eff_age55minus_SBP'] - PU['AHT_eff_age55minus_SBP']['l95']) / 1.96
 
 # reduction in diastolic blood pressure
 P['AHT_eff_age55minus_DBP'] = -4.14
-P['AHT_eff_age55minus_DBP95'] = -5.81
-P['AHT_eff_age55minus_DBP_std'] = (P['AHT_eff_age55minus_DBP'] - P['AHT_eff_age55minus_DBP95']) / 1.96
+PU['AHT_eff_age55minus_DBP'] = {'l95': -5.81}
+PU['AHT_eff_age55minus_DBP']['std'] = (P['AHT_eff_age55minus_DBP'] - PU['AHT_eff_age55minus_DBP']['l95']) / 1.96
 
 # age > 55 years, assume use calcium blockers
 P['AHT_eff_age55plus_SBP_male'] = -7.6
-P['AHT_eff_age55plus_SBP_male95'] = -7.95
-P['AHT_eff_age55plus_SBP_male_std'] = (P['AHT_eff_age55plus_SBP_male'] - P['AHT_eff_age55plus_SBP_male95']) / 1.96
+PU['AHT_eff_age55plus_SBP_male'] = {'l95': -7.95}
+PU['AHT_eff_age55plus_SBP_male']['std'] = (P['AHT_eff_age55plus_SBP_male'] - PU['AHT_eff_age55plus_SBP_male']['l95']) / 1.96
 
 P['AHT_eff_age55plus_SBP_female'] = -9.0
-P['AHT_eff_age55plus_SBP_female95'] = -9.32
-P['AHT_eff_age55plus_SBP_female_std'] = (P['AHT_eff_age55plus_SBP_female'] - P['AHT_eff_age55plus_SBP_female95']) / 1.96
+PU['AHT_eff_age55plus_SBP_female'] = {'l95': -9.32}
+PU['AHT_eff_age55plus_SBP_female']['std'] = (P['AHT_eff_age55plus_SBP_female'] - PU['AHT_eff_age55plus_SBP_female']['l95']) / 1.96
 
 P['AHT_eff_age55plus_DBP_male'] = -3.1
-P['AHT_eff_age55plus_DBP_male95'] = -3.45
-P['AHT_eff_age55plus_DBP_male_std'] = (P['AHT_eff_age55plus_DBP_male'] - P['AHT_eff_age55plus_DBP_male95']) / 1.96
+PU['AHT_eff_age55plus_DBP_male'] = {'l95': -3.45}
+PU['AHT_eff_age55plus_DBP_male']['std'] = (P['AHT_eff_age55plus_DBP_male'] - PU['AHT_eff_age55plus_DBP_male']['l95']) / 1.96
 
 P['AHT_eff_age55plus_DBP_female'] = -3.5
-P['AHT_eff_age55plus_DBP_female95'] = -3.82
-P['AHT_eff_age55plus_DBP_female_std'] = (P['AHT_eff_age55plus_DBP_female'] - P['AHT_eff_age55plus_DBP_female95']) / 1.96
-
-
-### OLD weight parameters for testing
-
-#P['Weight_compliance'] = 0.58 # proportion completing treatment
-#P['Weight_compliance95'] = 0.331
-#P['Weight_eff_c'] = -2.0
-#P['Weight_eff_c95'] = -2.02
-#P['Weight_eff_nc'] = -0.7
-#P['Weight_eff_nc95'] = -0.72
-#P['Weight_eff_ncstd'] = 0.01
+PU['AHT_eff_age55plus_DBP_female'] = {'l95': -3.82}
+PU['AHT_eff_age55plus_DBP_female']['std'] = (P['AHT_eff_age55plus_DBP_female'] - PU['AHT_eff_age55plus_DBP_female']['l95']) / 1.96
 
 
 
@@ -226,12 +197,18 @@ P['CVD_diagnosis_fraction'] = 1.0 # yearly fraction of how many CVD events are d
 P['bp_diagnosis_fraction'] = 0.05 # yearly fraction of how many instances of high blood pressure are diagnosed
 
 P['Smoking_relapsing_rate'] = 0.35 # rate of people relapsing to smoking after quitting
+P['Smoking_relapsing_rate_std'] = 0.35 # 
 
 P['Statins_dropout_rate'] = 0.05 # yearly rate of people stopping to take statins
+PU['Statins_dropout_rate'] = {'std': 0.01, 'betaa': 18.89142, 'betab': 354.12932}
+#PU['Statins_dropout_rate'] = {'std': 0.005, 'betaa':82.25182 , 'betab':1553.85174 }
 
 P['AHT_dropout_rate'] = 0.05 # yearly rate of people stopping to take AHTs
+PU['AHT_dropout_rate'] = {'std': 0.01, 'betaa': 18.89142, 'betab': 354.12932}
+#PU['AHT_dropout_rate'] = {'std': 0.005, 'betaa':82.25182 , 'betab':1553.85174 }
 
 # proportion of individuals that are physically active
+# Not used currently 
 P['physically_active'] = 0.6
 
 # age bounds in which CAIDE is used
@@ -241,13 +218,12 @@ P['MI_sudden_death'] = 0.3
 P['Stroke_sudden_death'] = 0.3
 P['p_ihdevent_is_mi'] = 0.5 
 P['p_strokeevent_is_full'] = 0.5
-P['CVD_background_CFR_reduction'] = True
 
 
 
 
 ##################################################################
-#  DO NOT CHANGE ANY OF THE FOLLOWING:
+#  Following are fixed data rather than uncertain parameters 
 ##################################################################
 
 # QRISK2 weights - coming directly from QRISK algorithm
@@ -313,3 +289,5 @@ P['census_prop'] = np.array([[4.78,	0.76,	0.25,	0.26,	4.79,	0.76,	0.29,	0.22],
                             [4.00,	0.12,	0.05,	0.03,	4.22,	0.14,	0.06,	0.03],
                             [3.14,	0.12,	0.06,	0.03,	3.51,	0.12,	0.07,	0.03]])/100.0
 P['census_ages'] = np.array([30,40,45,50,55,60,65,70,75])
+
+P['DementiaLateRRs'] = 0 # dummy value to initialise 
