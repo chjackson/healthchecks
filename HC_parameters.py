@@ -291,3 +291,19 @@ P['census_prop'] = np.array([[4.78,	0.76,	0.25,	0.26,	4.79,	0.76,	0.29,	0.22],
 P['census_ages'] = np.array([30,40,45,50,55,60,65,70,75])
 
 P['DementiaLateRRs'] = 0 # dummy value to initialise 
+
+# Annual decline in CVD incidence, as a relative risk for 1 year later
+P['CVD_annual_inc_rr_male'] = 1.0
+P['CVD_annual_inc_rr_female']  = 1.0
+
+# case fatality decline (applies to both sudden and background mortality)
+P['IHD_annual_cf_rr_male'] = 1.0
+P['IHD_annual_cf_rr_female'] = 1.0
+P['Stroke_annual_cf_rr_male'] = 1.0
+P['Stroke_annual_cf_rr_female'] = 1.0
+
+# decline in fatality after sudden events (published data for stroke is just for events)
+P['Stroke_annual_sudden_rr_male'] = 1.0
+P['Stroke_annual_sudden_rr_female'] = 1.0
+
+P['CVD_extrap_horizon'] = 20

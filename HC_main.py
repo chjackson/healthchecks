@@ -2910,6 +2910,8 @@ class HealthChecksModel:
 
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
 
+        score[incl] *= pow(self.up_CVD_annual_inc_rr_male, min(i,self.up_CVD_extrap_horizon))
+
         # FEMALE ------------------------------------------------------------
         # only apply calculations for female population
         incl = self.gender == 0
@@ -2999,6 +3001,7 @@ class HealthChecksModel:
         self.a += self.on_statins[incl,i] * extralhr_female
 
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
+        score[incl] *= pow(self.up_CVD_annual_inc_rr_female, min(i,self.up_CVD_extrap_horizon))
 
         # delete internal arrays
         del dage,age_1,age_2,dbmi,bmi_1,bmi_2,rati,sbp,town
@@ -4022,6 +4025,8 @@ class HealthChecksModel:
 
             # convert rate to probability of death following exponential distribution
             self.stroke_mortality = 1 -np.exp(-self.stroke_mortality)
+            self.stroke_mortality[male] *= pow(self.up_Stroke_annual_cf_rr_male, min(i,self.up_CVD_extrap_horizon)) # adjust for projected annual decline in case fatality 
+            self.stroke_mortality[female] *= pow(self.up_Stroke_annual_cf_rr_female, min(i,self.up_CVD_extrap_horizon))
 
             ## Reduce background mortality to compensate for sudden death risk
 
@@ -4035,7 +4040,8 @@ class HealthChecksModel:
                 cvd_risk_base = cr[:,i]
             else:
                 cvd_risk_base = cvd_risk # if not, use values from this run.
-            p_fatal_stroke = cvd_risk_base * stroke_risk * self.up_p_strokeevent_is_full * self.up_Stroke_sudden_death
+            stroke_sudden_death = self.up_Stroke_sudden_death * pow(self.up_Stroke_annual_sudden_rr_male, min(i,self.up_CVD_extrap_horizon))
+            p_fatal_stroke = cvd_risk_base * stroke_risk * self.up_p_strokeevent_is_full * stroke_sudden_death
             self.stroke_mortality = (self.stroke_mortality - p_fatal_stroke) / (1 - p_fatal_stroke)
                         
             r = np.random.random(self.population_size)
@@ -4067,6 +4073,8 @@ class HealthChecksModel:
             ihd_risk = 1 - stroke_risk
             p_fatal_mi = cvd_risk_base * ihd_risk * self.up_p_ihdevent_is_mi * self.up_MI_sudden_death
             self.ihd_mortality = (self.ihd_mortality - p_fatal_mi) / (1 - p_fatal_mi)
+            self.ihd_mortality[male] *= pow(self.up_IHD_annual_cf_rr_male, min(i,self.up_CVD_extrap_horizon))
+            self.ihd_mortality[female] *= pow(self.up_IHD_annual_cf_rr_female, min(i,self.up_CVD_extrap_horizon))
             
             r = np.random.random(self.population_size)
             Idies = (r<self.ihd_mortality) * (self.IHD[:,i]==1)
@@ -4078,7 +4086,8 @@ class HealthChecksModel:
             ######
             # mortality by sudden death following a CVD event
             r = np.random.random(self.population_size)
-            MIdeath = (r < (self.IHDEvents[:,i] == 1) * self.up_p_ihdevent_is_mi * self.up_MI_sudden_death )
+            mi_sudden_death = self.up_MI_sudden_death * pow(self.up_IHD_annual_cf_rr_male, min(i,self.up_CVD_extrap_horizon))
+            MIdeath = (r < (self.IHDEvents[:,i] == 1) * self.up_p_ihdevent_is_mi * mi_sudden_death)
             strokedeath = (r < (self.StrokeEvents[:,i] == 1) * self.up_p_strokeevent_is_full * self.up_Stroke_sudden_death )
             nodeath = self.Death.sum(axis=1) == 0
             self.Death[MIdeath*nodeath,i] = 1
