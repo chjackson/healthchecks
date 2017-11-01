@@ -307,3 +307,10 @@ P['Stroke_annual_sudden_rr_male'] = 1.0
 P['Stroke_annual_sudden_rr_female'] = 1.0
 
 P['CVD_extrap_horizon'] = 20
+
+# Parameterise extra uncertainty about the baseline risk of the population
+# through an extra relative QRisk centred around 1
+# Error should be 0 in base case, and 0.1 in a sensitivity analysis, corresponding to 95% CI of exp(+- 2*0.1) = (0.82, 1.22)
+
+P['QRisk_extra_logrr'] = 0.0
+PU['QRisk_extra_logrr'] = {'std': 0.0}

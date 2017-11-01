@@ -59,6 +59,7 @@ class HealthChecksModel:
         # load model parameters
         if pars is None:
             if randpars: ## draw random ones 
+                self.ResetUncertainParameters()
                 self.ChangeUncertainParameters()
             else:        ## use point estimates 
                 self.ResetUncertainParameters()
@@ -150,9 +151,6 @@ class HealthChecksModel:
     def ChangeUncertainParameters(self):
         '''draw uncertain parameters from their uncertainty distributions'''
 
-        # as a first step, reset all parameters to default, then draw from distributions
-        self.ResetUncertainParameters()
-
         for i in range(4):
             self.up_age_log[i] = np.random.normal(self.parms['age_log'][i], self.parmsu['age_log']['se'][i])
             self.up_age_vec[i] = np.exp(self.up_age_log[i])
@@ -204,7 +202,10 @@ class HealthChecksModel:
 
         self.up_Statins_dropout_rate = np.random.beta(self.parmsu['Statins_dropout_rate']['betaa'], self.parmsu['Statins_dropout_rate']['betab'])
         self.up_AHT_dropout_rate = np.random.beta(self.parmsu['AHT_dropout_rate']['betaa'], self.parmsu['AHT_dropout_rate']['betab'])
-               
+
+        if (self.parmsu['QRisk_extra_logrr']['std'] > 0):
+            self.up_QRisk_extra_logrr = np.random.normal(self.parms['QRisk_extra_logrr'], self.parmsu['QRisk_extra_logrr']['std'])
+                       
         UP = {} # save new draw in dictionary of all uncertain parameters.
         for pn in self.parmsu.keys(): 
             exec('UP[\'%s\'] = self.up_%s' % (pn,pn))
@@ -217,9 +218,12 @@ class HealthChecksModel:
 
     def SetUncertainParameter(self, parname, parval):
         '''updates a parameter to a new value'''
-
         exec('self.up_%s = parval' % parname)
         self.UP[parname] = parval
+
+    def SetUncertainHyperparameter(self, parname, parkey, parval):
+        '''updates a parameter of an uncertainty distribution, e.g. standard error'''
+        exec('self.parmsu[\'%s\'][\'%s\'] = parval' % (parname, parkey))
 
     def GetNumberOfCPUs(self):
         '''returns number of CPUs used for parallel tasks (matching processes)'''
@@ -3003,6 +3007,10 @@ class HealthChecksModel:
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
         score[incl] *= pow(self.up_CVD_annual_inc_rr_female, min(i,self.up_CVD_extrap_horizon))
 
+        print np.exp(self.up_QRisk_extra_logrr)
+        
+        score *= np.exp(self.up_QRisk_extra_logrr)
+        
         # delete internal arrays
         del dage,age_1,age_2,dbmi,bmi_1,bmi_2,rati,sbp,town
 
