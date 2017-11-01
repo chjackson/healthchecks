@@ -3007,8 +3007,6 @@ class HealthChecksModel:
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
         score[incl] *= pow(self.up_CVD_annual_inc_rr_female, min(i,self.up_CVD_extrap_horizon))
 
-        print np.exp(self.up_QRisk_extra_logrr)
-        
         score *= np.exp(self.up_QRisk_extra_logrr)
         
         # delete internal arrays
@@ -3990,7 +3988,6 @@ class HealthChecksModel:
                 exits = (thisyear99 * lastyear98 * (self.alive[:,i]==1)) == 1
 
                 nodeath = self.Death.sum(axis=1) == 0
-
                 self.Death[exits*nodeath,i] = 1
                 self.CauseOfDeath[exits*nodeath] = 'Other'
                 self.alive[exits*nodeath,i:] = 0
@@ -4010,10 +4007,10 @@ class HealthChecksModel:
             self.other_mortality[female] = other_female[female]
             r = np.random.random(self.population_size)
             OTdies = (r<self.other_mortality)
-            self.alive[OTdies,i:] = 0
-            nodeath = self.Death.sum(axis=1) == 0
-            self.Death[OTdies*nodeath,i] = 1
-            self.CauseOfDeath[OTdies*nodeath] = 'Other'
+#            self.alive[OTdies,i:] = 0
+#            nodeath = self.Death.sum(axis=1) == 0
+#            self.Death[OTdies*nodeath,i] = 1
+#            self.CauseOfDeath[OTdies*nodeath] = 'Other'
 
 
             if self.RandomSeed['Mortality_Diseases'] == False:
@@ -4054,10 +4051,6 @@ class HealthChecksModel:
                         
             r = np.random.random(self.population_size)
             STdies = (r<self.stroke_mortality) * (self.Stroke[:,i]==1)
-            self.alive[STdies,i:] = 0
-            nodeath = self.Death.sum(axis=1) == 0
-            self.Death[STdies*nodeath,i] = 1
-            self.CauseOfDeath[STdies*nodeath] = 'Stroke'
 
             ## count people with multiple diseases
 #            stroke_and_ihd = (self.Stroke[:,i]==1) * (self.IHD[:,i]==1) * (self.alive[:,i] == 1)
@@ -4086,10 +4079,6 @@ class HealthChecksModel:
             
             r = np.random.random(self.population_size)
             Idies = (r<self.ihd_mortality) * (self.IHD[:,i]==1)
-            self.alive[Idies,i:] = 0
-            nodeath = self.Death.sum(axis=1) == 0
-            self.Death[Idies*nodeath,i] = 1
-            self.CauseOfDeath[Idies*nodeath] = 'IHD'
 
             ######
             # mortality by sudden death following a CVD event
@@ -4097,13 +4086,6 @@ class HealthChecksModel:
             mi_sudden_death = self.up_MI_sudden_death * pow(self.up_IHD_annual_cf_rr_male, min(i,self.up_CVD_extrap_horizon))
             MIdeath = (r < (self.IHDEvents[:,i] == 1) * self.up_p_ihdevent_is_mi * mi_sudden_death)
             strokedeath = (r < (self.StrokeEvents[:,i] == 1) * self.up_p_strokeevent_is_full * self.up_Stroke_sudden_death )
-            nodeath = self.Death.sum(axis=1) == 0
-            self.Death[MIdeath*nodeath,i] = 1
-            self.Death[strokedeath*nodeath,i] = 1
-            self.alive[MIdeath*nodeath,i:] = 0
-            self.alive[strokedeath*nodeath,i:] = 0
-            self.CauseOfDeath[MIdeath*nodeath] = 'IHD'
-            self.CauseOfDeath[strokedeath*nodeath] = 'Stroke'
             
             # mortality by Dementia
 
@@ -4117,11 +4099,6 @@ class HealthChecksModel:
 
             r = np.random.random(self.population_size)
             Ddies = (r<self.dem_mortality) * (self.Dementia[:,i]==1)
-            self.alive[Ddies,i:] = 0
-
-            nodeath = self.Death.sum(axis=1) == 0
-            self.Death[Ddies*nodeath,i] = 1
-            self.CauseOfDeath[Ddies*nodeath] = 'Dementia'
 
 
 
@@ -4156,26 +4133,36 @@ class HealthChecksModel:
 
             r = np.random.random(self.population_size)
             Ldies = (r<self.LC_mortality) * (self.LungCancer[:,i]==1)
-            self.alive[Ldies,i:] = 0
-            nodeath = self.Death.sum(axis=1) == 0
-            self.Death[Ldies*nodeath,i] = 1
-            self.CauseOfDeath[Ldies*nodeath] = 'Lung Cancer'
 
 
+            # Collect all causes of death together and determine who has died. 
 
+            curr_alive = self.Death.sum(axis=1) == 0
+            diednow = curr_alive * (Idies + MIdeath + STdies + strokedeath + Ddies + Ldies + OTdies > 0)
+            self.Death[diednow,i] = 1
+            self.alive[diednow,i:] = 0
 
+            # Where multiple causes of death are simulated, pick one randomly
 
+            # Matrix of whether died from IHD, stroke, dementia, lung cancer, other (could be more than one)
+            dinds = np.column_stack((Idies+MIdeath>0, STdies+strokedeath>0, Ddies>0, Ldies>0, OTdies>0)) * curr_alive.reshape(self.population_size, 1)
+            
+            # randomise preferred order of causes (permutation of 0, 1, 2, 3, 4)
+            dorder = np.random.choice(5, 5, replace=False)
 
-
-
-
-
+            causes = np.array(['IHD', 'Stroke', 'Dementia', 'Lung Cancer', 'Other'])
+            cod =  np.zeros(self.population_size, dtype=int) - 1  # index into "causes" for people who die at current time. -1 if don't die at current time
+            for j in range(5):
+                ## if not already died at this time, take the first cause in the randomised order of preference
+                dni = np.where(diednow * (cod==-1) * dinds[:,dorder[j]])[0]
+                cod[dni] = dorder[j]
+            self.CauseOfDeath[diednow] = causes[cod][diednow]
 
             # delete internal arrays
             del r, female_ns, female_s, male_s, male_ns, smoker,bp_high,bp_diagnosed
             del rel_risk,CAIDE_risk, dem_risk, rr
             del stroke_event,ihd_event, cvd_risk,cvd_event
-            del MIdeath, strokedeath, nodeath, Idies, STdies, OTdies, p_fatal_mi
+            del MIdeath, strokedeath, Idies, STdies, OTdies, p_fatal_mi
 
             try:
                 del p_Q20minus, p_Q20plus
