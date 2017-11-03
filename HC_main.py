@@ -1418,9 +1418,10 @@ class HealthChecksModel:
         maxallage = self.age.max()
 
         init_agespan = int(maxstartage - minstartage)
+        all_agespan = int(maxstartage - minstartage)
 
-        male_start = np.histogram(self.age[male,0].flatten(),bins=(maxstartage-minstartage))
-        male_all = np.histogram(self.age[male,:].flatten(),bins=(maxallage-minallage))
+        male_start = np.histogram(self.age[male,0].flatten(),bins=init_agespan)
+        male_all = np.histogram(self.age[male,:].flatten(),bins=all_agespan)
 
         # restrict bin of all ages to initial ages, as weights are only applied to initial ages anyway
         male_all_restricted = np.array(male_all[0][:init_agespan],dtype=float)
@@ -1428,8 +1429,8 @@ class HealthChecksModel:
         # at age 73, and 74, numbers are lumped: divide by 2
         self.age_weight_male[[73,74]] = self.age_weight_male[73]/2.0
 
-        female_start = np.histogram(self.age[female,0].flatten(),bins=(maxstartage-minstartage))
-        female_all = np.histogram(self.age[female,:].flatten(),bins=(maxallage-minallage))
+        female_start = np.histogram(self.age[female,0].flatten(),bins=init_agespan)
+        female_all = np.histogram(self.age[female,:].flatten(),bins=all_agespan)
 
         # restrict bin of all ages to initial ages, as weights are only applied to initial ages anyway
         female_all_restricted = np.array(female_all[0][:init_agespan],dtype=float)
@@ -4148,8 +4149,9 @@ class HealthChecksModel:
             dinds = np.column_stack((Idies+MIdeath>0, STdies+strokedeath>0, Ddies>0, Ldies>0, OTdies>0)) * curr_alive.reshape(self.population_size, 1)
             
             # randomise preferred order of causes (permutation of 0, 1, 2, 3, 4)
-            dorder = np.random.choice(5, 5, replace=False)
-
+            dorder = [0,1,2,3,4]
+            rnd.shuffle(dorder)
+                
             causes = np.array(['IHD', 'Stroke', 'Dementia', 'Lung Cancer', 'Other'])
             cod =  np.zeros(self.population_size, dtype=int) - 1  # index into "causes" for people who die at current time. -1 if don't die at current time
             for j in range(5):
