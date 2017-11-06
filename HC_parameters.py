@@ -314,3 +314,65 @@ P['CVD_extrap_horizon'] = 20
 
 P['QRisk_extra_logrr'] = 0.0
 PU['QRisk_extra_logrr'] = {'std': 0.0}
+
+
+## Utility decrements from Sullivan
+
+P['eq_age'] = -0.0002747
+P['eq_male'] = 0.0010046,	
+
+# capture contrast in coefficients between poor/near poor (bottom fifth of US pop) and top four-fifths. apply to bottom fifth of UK pop.
+P['eq_poor'] = -0.04
+
+#icd410	acute myocardial infarct*
+#icd411	oth ac ischemic hrt dis*
+#icd412	old myocardial infarct
+#icd413	angina pectoris*
+#icd414	oth chr ischemic hrt dis*
+#P['eq_'] = np.array([-0.0625727,	0.0131711])
+#P['eq_'] = np.array([-0.0866826,	0.0842625])
+#P['eq_'] = np.array([-0.0367975,	0.0257359])
+#P['eq_'] = np.array([-0.0854255,	0.0134397])
+#P['eq_'] = np.array([-0.0626527,	0.0130759])
+# take one in the middle
+P['eq_ihd'] = -0.0625727
+	
+## icd436	cva
+P['eq_stroke'] = -0.1170501
+
+## icd797	senility w/o psychosis
+P['eq_dem'] = -0.2136477
+
+# icd162	mal neo trachea/lung*
+P['eq_lc'] = -0.1192427
+
+## extra disutility for number of chronic conditions (Sullivan web table 1)
+## we only need up to 4 
+
+P['eq_2dis'] = -0.0615
+P['eq_3dis'] = -0.0667
+P['eq_4dis'] = -0.0433
+
+# 2 -0.0615 0.0081
+# 3 -0.0667 0.0099
+# 4 -0.0433 0.0118
+# 5 -0.0287 0.0153
+# 6 -0.0048 0.0178
+# 7 0.0237 0.0189
+# 8 0.0389 0.0217
+# 9 0.0445 0.0251
+# 10 0.1001 0.0285
+
+
+## standard errors around utility decrements from Sullivan
+
+PU['eq_age'] = {'std': 0.000165}
+PU['eq_male'] = {'std': 0.0006241}
+PU['eq_poor'] = {'std': 0.006}
+PU['eq_ihd'] = {'std': 0.0131711}
+PU['eq_stroke'] = {'std': 0.0121435}
+PU['eq_dem'] = {'std': 0.0278856}
+PU['eq_lc'] = {'std': 0.0430051}
+PU['eq_2dis'] = {'std': 0.0081}
+PU['eq_3dis'] = {'std': 0.0099}
+PU['eq_4dis'] = {'std': 0.0118}

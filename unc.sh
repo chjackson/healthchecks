@@ -1,7 +1,7 @@
 #!/bin/bash
 #
-#SBATCH --job-name=unc
-#SBATCH --output=unc.out
+#SBATCH --job-name=scenarios_revision
+#SBATCH --output=scenarios_revision.out
 #SBATCH -p mrc-bsu-sand
 #SBATCH -A MRC-BSU-SL2
 #SBATCH --cpus-per-task=4
@@ -29,7 +29,7 @@ do
     do
 	k=$(((j-1)*nruns + i))
 	echo "Starting run $k"
-	srun --exclusive -n 1 python scenarios_unc.py $k $n_cpus &
+	srun --exclusive -n 1 python scenarios_revision.py $k $n_cpus &
     done
     wait
 done
@@ -39,7 +39,7 @@ for i in `seq 1 $nrem`;
 do
     k=$((nbatch*nruns + i))
     echo "Starting run $k"
-    srun --exclusive -n 1 python scenarios_unc.py $k $n_cpus &
+    srun --exclusive -n 1 python scenarios_revision.py $k $n_cpus &
 done
 wait
 

@@ -205,6 +205,17 @@ class HealthChecksModel:
 
         if (self.parmsu['QRisk_extra_logrr']['std'] > 0):
             self.up_QRisk_extra_logrr = np.random.normal(self.parms['QRisk_extra_logrr'], self.parmsu['QRisk_extra_logrr']['std'])
+
+        self.up_eq_age = np.random.normal(self.parms['eq_age'], self.parmsu['eq_age']['std'])
+        self.up_eq_male = np.random.normal(self.parms['eq_male'], self.parmsu['eq_male']['std'])
+        self.up_eq_poor = np.random.normal(self.parms['eq_poor'], self.parmsu['eq_poor']['std'])
+        self.up_eq_ihd = np.random.normal(self.parms['eq_ihd'], self.parmsu['eq_ihd']['std'])
+        self.up_eq_stroke = np.random.normal(self.parms['eq_stroke'], self.parmsu['eq_stroke']['std'])
+        self.up_eq_dem = np.random.normal(self.parms['eq_dem'], self.parmsu['eq_dem']['std'])
+        self.up_eq_lc = np.random.normal(self.parms['eq_lc'], self.parmsu['eq_lc']['std'])
+        self.up_eq_2dis = np.random.normal(self.parms['eq_2dis'], self.parmsu['eq_2dis']['std'])
+        self.up_eq_3dis = np.random.normal(self.parms['eq_3dis'], self.parmsu['eq_3dis']['std'])
+        self.up_eq_4dis = np.random.normal(self.parms['eq_4dis'], self.parmsu['eq_4dis']['std'])
                        
         UP = {} # save new draw in dictionary of all uncertain parameters.
         for pn in self.parmsu.keys(): 
@@ -1053,6 +1064,7 @@ class HealthChecksModel:
         self.q_town = np.zeros(self.population_size)
         self.qimd = np.zeros(self.population_size)
         self.educ = np.zeros(self.population_size)
+        self.eqv5 = np.zeros(self.population_size)
 
 
 
@@ -1310,6 +1322,7 @@ class HealthChecksModel:
         self.q_town = self.P['q_town'][self.ok_all][select]
         self.qimd = self.P['qimd'][self.ok_all][select]
         self.educ = self.P['caide_educ'][self.ok_all][select]
+        self.eqv5 = self.P['eqv5'][self.ok_all][select]
 
         self.age[:, 0] = self.P['age'][self.ok_all][select]
         self.gender = self.P['male'][self.ok_all][select]
@@ -4233,36 +4246,36 @@ class HealthChecksModel:
 
 
     def CalculateQALY(self):
-        '''calculates QALY for all diseases: stroke, IHD, Lung Cancer, Dementia
-
+        '''Calculate EQ5D utility for each year of life, hence QALY over lifetime,
+        using decrements from Sullivan
+        Only include age, gender, income, diseases.
+        Ethnicity and education difficult to map between US/UK categories, and coefficients very small.
         '''
-        self.QALY = np.zeros(self.population_size)
+        
+        ns = self.population_size
+        nt = self.simulation_time
+        self.eq5d = np.ones((ns, nt))
 
-#        # load life expectancy at age from life table data
-#        LE = np.genfromtxt('data/ons_lifetable_2010-2012.csv',delimiter=',', skip_header=7)
-#        LE_male = LE[:,5]
-#        LE_female = LE[:,11]
-        ihd_weight = 0.63
-        lc_weight = 0.561
-        stroke_weight = 0.518
-        dem_weight = 0.4
+        # for missing income, use lowest IMD as proxy for lowest income
+        self.poor = np.logical_or((self.eqv5 == 1), (self.eqv5 == -1)*(self.qimd == 5))
 
-        self.qaly_matrix = np.zeros((self.population_size,self.simulation_time))
+        ## Number of chronic diseases a person has at the same time
+        self.ndis = self.IHD + self.Stroke + self.Dementia + self.LungCancer
 
-        strokes = (self.alive==1) * (self.Stroke==1)
-        IHD = (self.alive==1) * (self.IHD==1)
-        lc = (self.alive == 1) * (self.LungCancer==1)
-        dem = (self.alive==1) * (self.Dementia==1)
-        healthy = (self.alive==1) * (self.IHD==0) * (self.Stroke==0) * (self.LungCancer==0) * (self.Dementia==0)
+        self.eq5d += self.age * self.up_eq_age \
+                  + ((self.gender ==  1) * self.up_eq_male).reshape(ns, 1) \
+                  + (self.poor * self.up_eq_poor).reshape(ns, 1) \
+                  + self.IHD * self.up_eq_ihd \
+                  + self.Stroke * self.up_eq_stroke \
+                  + self.Dementia * self.up_eq_dem \
+                  + self.LungCancer * self.up_eq_lc \
+                  + (self.ndis == 2) * self.up_eq_2dis \
+                  + (self.ndis == 3) * self.up_eq_3dis \
+                  + (self.ndis == 4) * self.up_eq_4dis
 
-        self.qaly_matrix[healthy] = 1
-        self.qaly_matrix[IHD] = ihd_weight
-        self.qaly_matrix[lc] = lc_weight
-        self.qaly_matrix[strokes] = stroke_weight
-        self.qaly_matrix[dem] = dem_weight
+        self.eq5d *= self.alive
 
-
-        self.QALY = self.qaly_matrix.sum(axis=1)
+        self.QALY = self.eq5d.sum(axis=1)
 
 
     def CalculateMeanLifeExpectancy(self):

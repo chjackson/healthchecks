@@ -10,7 +10,8 @@ scn <- c("Base case","Invite high BP", "Attend age 50-74", "Attend age 40-80", "
          "Baseline uptake +30%","Uptake +30% in most deprived","Uptake of smokers +30%","+30% uptake for QRisk > 20",
          "Target non-attenders", "Attenders keep attending", "Attenders keep attending, target non-attenders", 
          "Statin prescription x 2.5", "AHT prescription x 2.5", "Smoking referral x 2.5", "Weight referral x 2.5",
-         "All treatments x 2.5", "Higher treatment, higher uptake and invite BP")
+         "All treatments x 2.5", "Higher treatment, higher uptake and invite BP",
+         "CVD incidence declining", "Baseline QRisk uncertainty +- 20%")
 # scn <- scn[1:13] # c("Base case","Invite high BP")
 nsc <- length(scn)
 
@@ -40,7 +41,7 @@ statunc <- TRUE
 
 ## Read and combine aggregate results from "nruns" batches 
 ## rearranging Python np.savetxt CSV output into properly-indexed arrays 
-fname <- if (statunc) "~/scratch/hc/healthchecks/results/paperjun/unc" else "~/scratch/hc/healthchecks/results/paperjun/base"
+fname <- if (statunc) "~/scratch/hc/healthchecks/results/paperrev/scen" else "~/scratch/hc/healthchecks/results/paperrev/scen"
 resm <- as.matrix(read.table(sprintf("%s_mean.csv",fname), colClasses="numeric", sep=",", header=FALSE))
 ## SD of output over population
 ress <- as.matrix(read.table(sprintf("%s_SD.csv",fname), colClasses="numeric", sep=",", header=FALSE))
@@ -67,6 +68,9 @@ Mrep["Base case",,"IQALY","All"]
 t(apply(Mrep[,,"IQALY","All"], 1, quantile, c(0.025, 0.5, 0.975)))
 t(apply(Mrep[,,"ILY","All"], 1, quantile, c(0.025, 0.5, 0.975)))
 t(apply(Mrep[,,"IHD80_i","All"], 1, quantile, c(0.025, 0.5, 0.975)))
+
+Mrep["CVD incidence declining",,"IQALY","All"]
+Mrep["Baseline QRisk uncertainty +- 20%",,"IQALY","All"]
 
 
 if (!statunc) {
