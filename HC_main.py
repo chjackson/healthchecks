@@ -2928,8 +2928,6 @@ class HealthChecksModel:
 
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
 
-        score[incl] *= pow(self.up_CVD_annual_inc_rr_male, min(i,self.up_CVD_extrap_horizon))
-
         # FEMALE ------------------------------------------------------------
         # only apply calculations for female population
         incl = self.gender == 0
@@ -3019,7 +3017,6 @@ class HealthChecksModel:
         self.a += self.on_statins[incl,i] * extralhr_female
 
         score[incl] = 100.0 * (1 - pow(surv, np.exp(self.a)))
-        score[incl] *= pow(self.up_CVD_annual_inc_rr_female, min(i,self.up_CVD_extrap_horizon))
 
         score *= np.exp(self.up_QRisk_extra_logrr)
         
@@ -3838,6 +3835,10 @@ class HealthChecksModel:
             # based on QRisk
             cvd_risk = (self.QRisk[:,i]/100.0)*rel_risk # divide by 100 as QRisk is in percentages
 
+            ## apply future decline in CVD incidence (sensitivity analysis)
+            cvd_risk[male] *= pow(self.up_CVD_annual_inc_rr_male, min(i,self.up_CVD_extrap_horizon))
+            cvd_risk[female] *= pow(self.up_CVD_annual_inc_rr_female, min(i,self.up_CVD_extrap_horizon))
+            
             ## alternative based on life table data (unused, for testing) 
             cvd_inc = np.zeros(self.population_size)
             cvd_inc_male = self.LT_ihd[age,1] + self.LT_stroke[age,1]
