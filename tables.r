@@ -10,9 +10,9 @@ scn <- c("Base case","Invite high BP", "Attend age 50-74", "Attend age 40-80", "
          "Baseline uptake +30%","Uptake +30% in most deprived","Uptake of smokers +30%","+30% uptake for QRisk > 20",
          "Target non-attenders", "Attenders keep attending", "Attenders keep attending, target non-attenders", 
          "Statin prescription x 2.5", "AHT prescription x 2.5", "Smoking referral x 2.5", "Weight referral x 2.5",
-         "All treatments x 2.5", "Higher treatment, higher uptake and invite BP",
+         "All treatments x 2.5", "Higher treatment, higher uptake and invite BP", 
          "CVD incidence declining", "Baseline QRisk uncertainty +- 20%")
-# scn <- scn[1:13] # c("Base case","Invite high BP")
+
 nsc <- length(scn)
 
 ## Model outputs 
@@ -42,6 +42,7 @@ statunc <- TRUE
 ## Read and combine aggregate results from "nruns" batches 
 ## rearranging Python np.savetxt CSV output into properly-indexed arrays 
 fname <- if (statunc) "~/scratch/hc/healthchecks/results/paperrev/scen" else "~/scratch/hc/healthchecks/results/paperrev/scen"
+# fname <- if (statunc) "~/scratch/hc/healthchecks/results/paperjun/unc" else "~/scratch/hc/healthchecks/results/paperrev/scen"
 resm <- as.matrix(read.table(sprintf("%s_mean.csv",fname), colClasses="numeric", sep=",", header=FALSE))
 ## SD of output over population
 ress <- as.matrix(read.table(sprintf("%s_SD.csv",fname), colClasses="numeric", sep=",", header=FALSE))
@@ -71,6 +72,10 @@ t(apply(Mrep[,,"IHD80_i","All"], 1, quantile, c(0.025, 0.5, 0.975)))
 
 Mrep["CVD incidence declining",,"IQALY","All"]
 Mrep["Baseline QRisk uncertainty +- 20%",,"IQALY","All"]
+
+# why big for HC vs no HC comparisons? 
+# something wrong here
+# Is this random number bullshit? since I changed the sudden death rates
 
 
 if (!statunc) {
@@ -243,24 +248,38 @@ source("parnames.r")
 ### uptake rates and logeff not uncertain 
 
 pars <- as.matrix(read.table("~/scratch/hc/healthchecks/results/paperjun/unc_pars.csv", colClasses="numeric",header=TRUE,sep=","))
+
+## TODO need to switch these for different scenarios 
+pars1 <- as.matrix(read.table("~/scratch/hc/healthchecks/results/paperrev/scen_pars.csv", colClasses="numeric",header=TRUE,sep=","))
+pars2 <- as.matrix(read.table("~/scratch/hc/healthchecks/results/paperrev/scen_senspars.csv", colClasses="numeric",header=TRUE,sep=","))
+pars2 <- pars2[201:300,]
+pars <- pars1
+
 ## Note the above file might need to be edited by hand so the column names are placed in the first row - due to parallel processing, run number 1 might not have been the first one to complete and write to this file!
 npars <- ncol(pars)
+
 outs <- t(Mrep[c("Base case","Higher treatment, higher uptake and invite BP","Statin prescription x 2.5","AHT prescription x 2.5","Smoking referral x 2.5","Weight referral x 2.5"),, "IQALY","All"]) # headline output 
+
+outs <- t(Mrep[c("Base case", "Baseline QRisk uncertainty +- 20%"),, "IQALY","All"]) # headline output 
+
+outs <- array(Mrep[c("Baseline QRisk uncertainty +- 20%"),, "IQALY","All"], dim=c(100,1))
+
 # outs <- matrix(Mrep[c("Base case"),, "IQALY","All"], ncol=1) # headline output 
 pevppi <- ps <- matrix(nrow=npars, ncol=ncol(outs)) # could extend to different outputs 
 dimnames(pevppi) <- list(colnames(pars), colnames(outs))
 calc.se <- TRUE
+calc.se <- FALSE
 for(i in 1:npars){
     print(i)
-    x <- pars[,i]
     for (j in 1:ncol(outs)) {
+        x <- if (j==1) pars1[,i] else pars2[,i]
         y <- outs[,j]
-        mod <- gam(y ~ s(x, bs="cr"))
-        pevppi[i,j] <- var(mod$fitted) / var(y)
+        mod <- try(gam(y ~ s(x, bs="cr")))
+        pevppi[i,j] <- if (inherits(mod, "try-error")) NA else var(mod$fitted) # / var(y)
         if (calc.se) { 
             P <- predict.gam(mod, type="lpmatrix")
             frep <- rmvnorm(B, mod$fitted, P %*% mod$Vp %*% t(P), method="svd")
-            pevppirep <- apply(frep, 1, var) / var(y)  ## EVPPI as prop of EVPI
+            pevppirep <- apply(frep, 1, var) # / var(y)  ## EVPPI as prop of EVPI
             ps[i,j] <- sd(pevppirep) # SD of EVPPI estimate
         }
     }
@@ -269,6 +288,21 @@ for(i in 1:npars){
 pevppi[pevppi<1e-04] <- 0
 eres <- data.frame(var=colnames(pars), pevppi=pevppi)
 eres %>% arrange(desc(pevppi[,1]))
+eres %>% arrange(desc(pevppi[,2]))
+eres %>% arrange(desc(pevppi))
+
+## Why are these so different in extra qrisk unc scenario?
+## A lot more things are uncertain now, as lots of other things depend on the baseline risk.
+## particularly effects of socio stuff on HC uptake rates - more benefit knowing these in a world where the baseline risk is less well known
+## also referral rates for smokers 
+## so why isn't QRisk_extra_logrr1 top?
+
+## "3.9 (3.1, 4.7)"  "3.8 (2.4, 6.1)"      
+## se 0.4    0.7
+## var 0.16  0.49
+## so why doesn't it explain 2/3 of the variance?
+## expected reduction in variance, is different from known reduction in variance
+
 
 if (calc.se) { 
     eres <- data.frame(var=colnames(pars), pevppi=pevppi, ps=ps)
@@ -282,6 +316,7 @@ if (calc.se) {
 ## Must be HSE, ELSA sampling uncertainty - hard to quantify contributions of these, we're at the boundaries of methodology
 ## Some other results may look funny, but the ests are all within a SE of zero, so can't interpret these.   Only statins compliance is valuable to learn
 
+## 10 
 
 
 

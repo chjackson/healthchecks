@@ -48,9 +48,9 @@ library(devEMF)
 emf("../paper/equity_big.emf", width=14, height=14)
 
 par(mar=c(5,6.5,5,2))
-plot(x, y,  xlim=c(-0.5,18), ylim=c(-7,19), type="n", axes=FALSE, cex.lab=2,
-     xlab="Overall effectiveness (QALY gain per head of population)",
-     ylab="Change in health equity (QALY gain for most deprived fifth – QALY gain for least deprived fifth)")
+plot(x, y,  xlim=c(-0.5,18), ylim=c(-7,19), type="n", axes=FALSE, cex.lab=1.5,
+     xlab="Overall effectiveness (days of quality-adjusted life per person)",
+     ylab="Change in health equity (gain in days of quality adjusted life for most – least deprived fifth)")
 lim <- par("usr")
 rect(lim[1], lim[3], lim[2], lim[4], col="gray92", border="gray92")
 axis(1, at=seq(-1, 17, by=1), cex.lab=2, cex.axis=1.3)
@@ -61,7 +61,7 @@ abline(h=0, v=0, col="black", lwd=2)
 points(x[x<2], y[x<2], pch=19, cex=1, col=cols[x<2])
 points(x[x>2], y[x>2], pch=1, cex=7, col=cols[x>2])
 text(x[x>2], y[x>2], 1:3, font=2, cex=2, col=cols[x>2])
-text(1, 7, "(see second\nmagnified plot)", cex=1.5)
+text(1.5, 3, "(see second\nmagnified plot)", cex=1.5)
 segments(xup, y, xlo, y, col=cols)
 segments(x, yup, x, ylo, col=cols)
 inds <- c(10,14,15); ni <- length(inds)
@@ -73,9 +73,9 @@ dev.off()
 emf("../paper/equity_small.emf", width=14, height=14)
 
 par(mar=c(5,6.5,5,2))
-plot(x, y,  xlim=c(-0.7, 2.7), ylim=c(-1.5, 3), type="n", axes=FALSE, cex.lab=2, 
-     xlab="Overall effectiveness (QALY gain per head of population)",
-     ylab="Change in health equity (QALY gain for most deprived fifth – QALY gain for least deprived fifth)")
+plot(x, y,  xlim=c(-0.7, 2.7), ylim=c(-1.5, 3), type="n", axes=FALSE, cex.lab=1.5, 
+     xlab="Overall effectiveness (days of quality-adjusted life per person)",
+     ylab="Change in health equity (gain in days of quality adjusted life for most – least deprived fifth)")
 lim <- par("usr")
 rect(lim[1], lim[3], lim[2], lim[4], col="gray92", border="gray92")
 axis(1, at=seq(-1.5, 3.0, by=0.5), cex.axis=1.3)

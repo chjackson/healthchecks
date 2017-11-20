@@ -214,11 +214,28 @@ P['physically_active'] = 0.6
 # age bounds in which CAIDE is used
 P['CAIDE_age_bounds'] = [40,60]
 
-P['MI_sudden_death'] = 0.3
-P['Stroke_sudden_death'] = 0.3
-P['p_ihdevent_is_mi'] = 0.5 
-P['p_strokeevent_is_full'] = 0.5
+# values used in first submission
+#P['MI_sudden_death'] = 0.3
+#P['Stroke_sudden_death'] = 0.3
+#P['p_ihdevent_is_mi'] = 0.5 
+#P['p_strokeevent_is_full'] = 0.5
 
+P['MI_sudden_death_male'] = 0.321 # http://www.bmj.com/content/344/bmj.d8059  2010 figures 
+P['MI_sudden_death_female'] = 0.299
+
+# http://bmjopen.bmj.com/content/1/2/e000269 Fig 2
+# smoothed, see stroke_mort.r
+P['Stroke_sudden_death_female_80plus'] = 0.2364014
+P['Stroke_sudden_death_male_80plus'] = 0.1720481
+P['Stroke_sudden_death_female_below80'] = 0.06591648
+P['Stroke_sudden_death_male_below80'] = 0.04727273 
+
+# https://www.bhf.org.uk/publications/statistics/cvd-stats-2015 ch 2, Table 2.11 from Wales
+P['p_ihdevent_is_mi_male'] = 0.5822785   # 4.6/(4.6+3.3) 
+P['p_ihdevent_is_mi_female'] = 0.444444  # 2.4/(2.4+3.0)
+
+# http://stroke.ahajournals.org/content/43/12/3343.long
+P['p_strokeevent_is_full'] = 0.6004942 # 729 / (729 + 485)
 
 
 

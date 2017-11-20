@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=4
 #SBATCH --nodes=5
 #SBATCH --ntasks=20
-#SBATCH --time=24:00:00
+#SBATCH --time=30:00:00
 
 start=`date +%s`
 
