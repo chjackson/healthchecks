@@ -5,22 +5,44 @@ library(forcats)
 ###  TABLES OF SCENARIOS 
 ############################################################
 
-## Scenarios
-scn <- c("Base case","Invite high BP", "Attend age 50-74", "Attend age 40-80", "Attend age 50-80",
+## Read results with or without statistical uncertainty
+#  statunc <- TRUE
+# statunc <- FALSE
+# not done in final version
+
+## Read results for Value of Information analysis (uses 1000 parameter samples, only 2 scenarios) or not (100 parameter samples, all nsc scenarios) 
+# voi <- FALSE
+voi <- TRUE
+
+if (voi){
+    scn <- c("Base case","Higher treatment, higher uptake and invite BP")
+    fname <- "~/scratch/hc/healthchecks/results/paperrev/voi"
+
+} else {     
+    scn <- c("Base case","Invite high BP", "Attend age 50-74", "Attend age 40-80", "Attend age 50-80",
          "Baseline uptake +30%","Uptake +30% in most deprived","Uptake of smokers +30%","+30% uptake for QRisk > 20",
          "Target non-attenders", "Attenders keep attending", "Attenders keep attending, target non-attenders", 
          "Statin prescription x 2.5", "AHT prescription x 2.5", "Smoking referral x 2.5", "Weight referral x 2.5",
          "All treatments x 2.5", "Higher treatment, higher uptake and invite BP", 
-         "CVD incidence declining", "Baseline QRisk uncertainty +- 20%")
+         "CVD incidence declining (vs no)", "Baseline QRisk uncertainty +- 20% (vs no)",
+         "CVD incidence declining (max benefit)", "Baseline QRisk uncertainty +- 20% (max benefit)"
+         )
+    fname <- "~/scratch/hc/healthchecks/results/paperrev/scen"
+}
 
+## Scenarios
 nsc <- length(scn)
 
 ## Model outputs 
-evn <- c("IHD","STR","DEM","LC") # counts of disease events
+evn <- c("IHD","STR","DEM","LC","EV") # counts of disease events
 outn.ev <- paste(rep(evn, each=3), rep(c(80,100), each=length(evn)*3), paste(rep(c("_con","_hc","_i"), length(evn)),sep=""),sep="")
 dn <- c("D")                     # counts of deaths 
 outn.d <- paste(rep(dn, each=3), rep(c(75,80), each=length(dn)*3), paste(rep(c("_con","_hc","_i"), length(dn)),sep=""),sep="")
-outn <- c("QALY_con","QALY_hc","IQALY","LY_con","LY_hc","ILY","IQALYperhc", "ILYperhc", outn.ev,outn.d)
+outn <- c("QALY_con","QALY_hc","IQALY",
+          "LY_con","LY_hc","ILY",
+          "IQALYperhc", "ILYperhc",
+          "IQALYpop", "ILYpop",
+          outn.ev,outn.d)
 nouts <- length(outn)
 
 ## Population subsets for which results are calculated
@@ -35,14 +57,9 @@ npopsall <- length(popsall)
 postn <- c("QRisk","SBP","DBP")
 npostn <- length(postn)
 
-## Read results with or without statistical uncertainty
-statunc <- TRUE
-# statunc <- FALSE
-
 ## Read and combine aggregate results from "nruns" batches 
 ## rearranging Python np.savetxt CSV output into properly-indexed arrays 
-fname <- if (statunc) "~/scratch/hc/healthchecks/results/paperrev/scen" else "~/scratch/hc/healthchecks/results/paperrev/scen"
-# fname <- if (statunc) "~/scratch/hc/healthchecks/results/paperjun/unc" else "~/scratch/hc/healthchecks/results/paperrev/scen"
+
 resm <- as.matrix(read.table(sprintf("%s_mean.csv",fname), colClasses="numeric", sep=",", header=FALSE))
 ## SD of output over population
 ress <- as.matrix(read.table(sprintf("%s_SD.csv",fname), colClasses="numeric", sep=",", header=FALSE))
@@ -66,17 +83,9 @@ Srep[,,c(outn.d, outn.ev),] <- Srep[,,c(outn.d, outn.ev),]*1000000
 
 ## examine some results 
 Mrep["Base case",,"IQALY","All"]
+Mrep["Base case",,"IHD80_i","All"]
 t(apply(Mrep[,,"IQALY","All"], 1, quantile, c(0.025, 0.5, 0.975)))
-t(apply(Mrep[,,"ILY","All"], 1, quantile, c(0.025, 0.5, 0.975)))
 t(apply(Mrep[,,"IHD80_i","All"], 1, quantile, c(0.025, 0.5, 0.975)))
-
-Mrep["CVD incidence declining",,"IQALY","All"]
-Mrep["Baseline QRisk uncertainty +- 20%",,"IQALY","All"]
-
-# why big for HC vs no HC comparisons? 
-# something wrong here
-# Is this random number bullshit? since I changed the sudden death rates
-
 
 if (!statunc) {
     Msum <- apply(Mrep*Nrep4D[,,,1:npops], c(1,3,4), sum) # total 
@@ -130,10 +139,10 @@ res[,"IQALY","All",c("SE","SEA","LCL","UCL","LCLA","UCLA")] # bias-corrected SD 
 res[,,"All","seratio"]
 1
 
-rows.ev <- c("IHD80_i",  "STR80_i", "DEM80_i",  "LC80_i", 
-          "IHD100_i", "STR100_i", "DEM100_i", "LC100_i",
+rows.ev <- c("IHD80_i",  "STR80_i", "DEM80_i",  "LC80_i", "EV80_i", 
+          "IHD100_i", "STR100_i", "DEM100_i", "LC100_i", "EV100_i", 
           "D75_i", "D80_i")   
-rows.ly <- c("IQALY", "ILY","IQALYperhc", "ILYperhc")
+rows.ly <- c("IQALY", "ILY","IQALYperhc", "ILYperhc","IQALYpop", "ILYpop")
 resev <- round(t(M[,rows.ev,"All"]), 0)
 resev <- array(as.character(resev), dim=dim(resev), dimnames=dimnames(resev))
 resly <- round(t(M[,rows.ly,"All"]), 1)
@@ -202,29 +211,39 @@ rows <- c("Eligibility and uptake",
           "Offered statins via HC", "Offered AHT via HC", "Offered WR via HC", "Offered SC via HC", 
           "Statins via HC","Antihypertensives via HC","Weight management via HC","Smoking cessation via HC",
           "Cases prevented by age 80",
-          "IHD80_i",  "STR80_i", "DEM80_i",  "LC80_i", 
+          "IHD80_i",  "STR80_i", "DEM80_i",  "LC80_i",
+          "EV80_i", 
           "Cases prevented",
           "IHD100_i", "STR100_i", "DEM100_i", "LC100_i",
+          "EV100_i", 
           "Deaths prevented",
           "D75_i", "D80_i",
           "Change in QALY",
+          "IQALYpop",
           "IQALY","IQALY_el","IQALY_att","IQALYperhc","IQALY_dep","IQALY_ndep",
           "Change in lifetime",
+          "ILYpop", 
           "ILY","ILY_el","ILY_att","ILYperhc","ILY_dep","ILY_ndep")
 
-res <- rbind(resperc, resm.ev, resm.ly, reshead)[rows,]
+res <- rbind(resperc, resm.ev, resm.ly, reshead)
+res <- res[rows,]
+
 options(width=180)
+
+# Examine results that will go into formatted table
 res[,1:5]
 res[,6:10]
 res[,11:12]
 res[,13:18]
+res[,c(1,18:22)]
+res[,c(1,19,20)]
+res[,c(18,21,22)]
 
 ## text file to paste into Word and convert to table. 
-write.table(res, "~/hc/paper/tab_res.txt", quote=FALSE, sep="\t", row.names=TRUE, na="")
+write.table(res, "~/hc/paper/tab_res_rev.txt", quote=FALSE, sep="\t", row.names=TRUE, na="")
 
 ### Absolute numbers of outcomes under base case (in paper text but not table)
 round(M["Base case",c("IHD100_con","STR100_con","DEM100_con","LC100_con","D80_con"), "All"], -3)/1000
-
 
 ## Post-HC outputs (in paper text but not table)
 resp <- as.matrix(read.table(sprintf("%s_post.csv",fname), colClasses="numeric", sep=",", header=FALSE))[,-1]
@@ -239,89 +258,75 @@ PSE["Base case",]
 
 
 ## Expected value of partial perfect information for each parameter
-# library(earth) ## earth method doesn't work well here. perhaps since many low EVPPIs?
 library(mgcv)
 library(mvtnorm)
 B <- 500
 source("parnames.r")
 
-### uptake rates and logeff not uncertain 
-
-pars <- as.matrix(read.table("~/scratch/hc/healthchecks/results/paperjun/unc_pars.csv", colClasses="numeric",header=TRUE,sep=","))
-
-## TODO need to switch these for different scenarios 
-pars1 <- as.matrix(read.table("~/scratch/hc/healthchecks/results/paperrev/scen_pars.csv", colClasses="numeric",header=TRUE,sep=","))
-pars2 <- as.matrix(read.table("~/scratch/hc/healthchecks/results/paperrev/scen_senspars.csv", colClasses="numeric",header=TRUE,sep=","))
-pars2 <- pars2[201:300,]
-pars <- pars1
-
-## Note the above file might need to be edited by hand so the column names are placed in the first row - due to parallel processing, run number 1 might not have been the first one to complete and write to this file!
+pars <- as.matrix(read.table("~/scratch/hc/healthchecks/results/paperrev/voi_pars.csv", colClasses="numeric",header=TRUE,sep=","))
+## Note the above file might need to be edited by hand so the column names are placed in the first row - due to parallel processing, run number 1 might not have been the first one to complete and write to this file.  This gives the error
+#Error in scan(file = file, what = what, sep = sep, quote = quote, dec = dec,  : 
+#  scan() expected 'a real', got 'AHT_eff_age55plus_SBP_female1'
 npars <- ncol(pars)
 
-outs <- t(Mrep[c("Base case","Higher treatment, higher uptake and invite BP","Statin prescription x 2.5","AHT prescription x 2.5","Smoking referral x 2.5","Weight referral x 2.5"),, "IQALY","All"]) # headline output 
-
-outs <- t(Mrep[c("Base case", "Baseline QRisk uncertainty +- 20%"),, "IQALY","All"]) # headline output 
-
-outs <- array(Mrep[c("Baseline QRisk uncertainty +- 20%"),, "IQALY","All"], dim=c(100,1))
-
-# outs <- matrix(Mrep[c("Base case"),, "IQALY","All"], ncol=1) # headline output 
-pevppi <- ps <- matrix(nrow=npars, ncol=ncol(outs)) # could extend to different outputs 
-dimnames(pevppi) <- list(colnames(pars), colnames(outs))
+outs <- t(Mrep[c("Base case", "Higher treatment, higher uptake and invite BP"),, "IQALY","All"]) # headline output 
+evppi <- es <- matrix(nrow=npars, ncol=ncol(outs))
+dimnames(evppi) <- list(colnames(pars), colnames(outs))
 calc.se <- TRUE
 calc.se <- FALSE
+
 for(i in 1:npars){
     print(i)
     for (j in 1:ncol(outs)) {
-        x <- if (j==1) pars1[,i] else pars2[,i]
+        x <- pars[,i]
         y <- outs[,j]
         mod <- try(gam(y ~ s(x, bs="cr")))
-        pevppi[i,j] <- if (inherits(mod, "try-error")) NA else var(mod$fitted) # / var(y)
+        evppi[i,j] <- if (inherits(mod, "try-error")) NA else var(mod$fitted)
         if (calc.se) { 
-            P <- predict.gam(mod, type="lpmatrix")
+            P <- try(predict.gam(mod, type="lpmatrix"))
+            if (inherits(P, "try-error")) es[i,j] <- NA
+            else { 
             frep <- rmvnorm(B, mod$fitted, P %*% mod$Vp %*% t(P), method="svd")
-            pevppirep <- apply(frep, 1, var) # / var(y)  ## EVPPI as prop of EVPI
-            ps[i,j] <- sd(pevppirep) # SD of EVPPI estimate
+            evppirep <- apply(frep, 1, var)  
+            es[i,j] <- sd(evppirep) # SD of EVPPI estimate
+            }
         }
     }
-#        fitted(earth(x, y))) / var(y)  ## EVPPI as prop of EVPI
 }
-pevppi[pevppi<1e-04] <- 0
-eres <- data.frame(var=colnames(pars), pevppi=pevppi)
-eres %>% arrange(desc(pevppi[,1]))
-eres %>% arrange(desc(pevppi[,2]))
-eres %>% arrange(desc(pevppi))
+evppi[evppi<1e-04] <- 0
+vars <- rep(apply(outs, 2, var), each=nrow(evppi)) # original variance 
+pevppi <- evppi  / vars  # proportion of variance explained 
+evar <- vars - evppi # expected variance after learning
+esd <- sqrt(evar) # expected SD after learning
+ps <- es / vars 
+psd <- (sqrt(vars) - esd) / sqrt(vars) ## prop of SD explainable
 
-## Why are these so different in extra qrisk unc scenario?
-## A lot more things are uncertain now, as lots of other things depend on the baseline risk.
-## particularly effects of socio stuff on HC uptake rates - more benefit knowing these in a world where the baseline risk is less well known
-## also referral rates for smokers 
-## so why isn't QRisk_extra_logrr1 top?
+eresf <-
+  data.frame(var=colnames(pars), pevppi=round(pevppi,2), ps=round(ps,2),
+             esd=round(esd,2), psd=round(psd,2)) %>% 
+  arrange(desc(pevppi[,1])) %>% 
+  filter(!var %in% c("eth_log1", "SES_log1", "gender_log1", "QRisk_log1")) %>%
+  mutate(name = parlabs$name[match(as.character(var), parlabs$var)]) %>%
+  mutate(val = parlabs$val[match(as.character(var), parlabs$var)]) %>% 
+  mutate(source = parlabs$source[match(as.character(var), parlabs$var)])
 
-## "3.9 (3.1, 4.7)"  "3.8 (2.4, 6.1)"      
-## se 0.4    0.7
-## var 0.16  0.49
-## so why doesn't it explain 2/3 of the variance?
-## expected reduction in variance, is different from known reduction in variance
+res1 <- eresf %>% 
+  rename(esd = esd.Base.case) %>%
+  rename(psd = psd.Base.case) %>%
+  filter(psd > 0.005) %>%
+  select(name, val, source, esd, psd)
+res1
 
+res2 <-  eresf %>% 
+  arrange(desc(pevppi.Higher.treatment..higher.uptake.and.invite.BP)) %>% 
+  rename(esd = esd.Higher.treatment..higher.uptake.and.invite.BP) %>%
+  rename(psd = psd.Higher.treatment..higher.uptake.and.invite.BP) %>%
+  filter(psd > 0.005) %>%
+  select(name, val, source, esd, psd)
+res2
 
-if (calc.se) { 
-    eres <- data.frame(var=colnames(pars), pevppi=pevppi, ps=ps)
-    eres %>% arrange(desc(pevppi[,1])) # most SEs same mag as error, so ests practically zero
-}
-
-## Uncertainty analysis showed that the parameters contributing most to the uncertainty in the results were the initial adherence to statin prescription and the annual dropout rate from statins, each explaining 10-20% of the variability in the expected QALY gains for the base case relative to no health checks, and in the scenarios where extra statin treatment is given.
-
-## why aren't more of them bigger?
-## var(y) is mostly statistical error, MC error 5%
-## Must be HSE, ELSA sampling uncertainty - hard to quantify contributions of these, we're at the boundaries of methodology
-## Some other results may look funny, but the ests are all within a SE of zero, so can't interpret these.   Only statins compliance is valuable to learn
-
-## 10 
-
-
-
-
-
+write.table(res1, file="../paper/tab_evppi1.txt", sep="\t", quote=FALSE, row.names=FALSE)
+write.table(res2, file="../paper/tab_evppi2.txt", sep="\t", quote=FALSE, row.names=FALSE)
 
 ############################################################
 
@@ -447,5 +452,3 @@ round(100*cbind(p, pse, p-1.96*pse, p+1.96*pse), 2)
 Nall
 
 # These are only really accurate to 2 sf 
-
-

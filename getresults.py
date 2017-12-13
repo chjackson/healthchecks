@@ -51,9 +51,19 @@ def GetResults_sub(sub, ind, H, H1, H0, M, S, NT):
     H.dead = np.logical_not(H.alive)
     H1.dead = np.logical_not(H1.alive)    
 
-    k = 8
+    # Total QALY gain (in years) for pop of one million 
+    M[ind,8] = IQALY.mean() * 1000000
+    S[ind,8] = IQALY.std() * 1000000
+    # Total LY gain (in years) for pop of one million 
+    M[ind,9] = ILY.mean() * 1000000
+    S[ind,9] = ILY.std() * 1000000
+    
+    k = 10 
+
     ## Counts of events by specific ages 
-    outcomes = ['IHD', 'Stroke', 'Dementia', 'LungCancer']
+    H.AnyEvent = (H.IHD + H.Stroke + H.Dementia + H.LungCancer) > 0
+    H1.AnyEvent = (H1.IHD + H1.Stroke + H1.Dementia + H1.LungCancer) > 0
+    outcomes = ['IHD', 'Stroke', 'Dementia', 'LungCancer', 'AnyEvent']
     ages = [80]
     for i in ages:
         for j in outcomes:

@@ -11,6 +11,8 @@
 
 ## Simulating a population
 
+* Model input parameters: [HC_parameters.py](HC_parameters.py)
+
 * Main model file: [HC_main.py](HC_main.py)
 
 ```python
@@ -59,6 +61,6 @@ Shell scripts are therefore used to simulate larger populations in batches.
 
 * The Python library [getresults.py](getresults.py) specifies which aggregate results are extracted from the simulated population. 
 
-* The Python scripts output aggregate results from the simulated population in text files.
+* The Python scripts output aggregate results from the simulated population in text files.   These files are stored in the [results](results) folder.
 
 * The R code in the file [tables.r](tables.r) formats the information in these output files to produce the tables in the paper.
